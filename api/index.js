@@ -14,7 +14,12 @@ app.use(bodyParser.json());
 
 // Connect to MongoDB
 
-
+mongoose.connect(process.env.MONGOURI);
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', function() {
+  console.log('Connected to MongoDB');
+});
 
 // // Define schema and models for Participants, Competition, and FYP_Registration
 // const participantSchema = new mongoose.Schema({
@@ -123,12 +128,6 @@ app.use(bodyParser.json());
 // });
 
 app.get('/devdaynodeapi', (req, res) => {
-  mongoose.connect(process.env.MONGODB_URI);
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', function() {
-  console.log('Connected to MongoDB');
-});
   res.send('Hello World!');
 });
 
