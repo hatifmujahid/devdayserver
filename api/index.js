@@ -128,7 +128,13 @@ db.once('open', function() {
 // });
 
 app.get('/devdaynodeapi', (req, res) => {
-  res.send('Hello World!');
+  mongoose.connect(process.env.MONGOURI);
+  const db = mongoose.connection;
+  db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+  db.once('open', function() {
+    console.log('Connected to MongoDB');
+  });
+  res.send(mongoose.connection.readyState);
 });
 
 app.listen(port, () => {
