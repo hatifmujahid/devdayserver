@@ -129,8 +129,6 @@ db.once('open', function() {
 
 app.get('/devdaynodeapi', (req, res) => {
   res.send('Hello World!');
-  res.send(db);
-
 });
 
 app.listen(port, () => {
