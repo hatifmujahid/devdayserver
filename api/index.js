@@ -138,9 +138,9 @@ app.post('/devdaynodeapi/addFYPRegistration', async (req, res) => {
 
 app.get('/devdaynodeapi', (req, res) => {
   res.send('Hello World!');
-  
+
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`App listening on port ${port}`);
 });
