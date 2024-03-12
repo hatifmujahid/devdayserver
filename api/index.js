@@ -132,9 +132,9 @@ app.get('/devdaynodeapi', async (req, res) => {
   const db = mongoose.connection;
   db.on('error', console.error.bind(console, 'MongoDB connection error:'));
   await db.once('open', function() {
-    console.log('Connected to MongoDB');
+    res.send('Connected to MongoDB from /devdaynodeapi');
   });
-  res.send(mongoose.connection.readyState);
+  res.send('Not implemented: get all participants');
 });
 
 app.listen(port, () => {
