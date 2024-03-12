@@ -1,2 +1,4 @@
 /.cph
 /.htaccess
+node_modules
+.env
