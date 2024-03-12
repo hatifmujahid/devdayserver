@@ -31,7 +31,7 @@ const participantCollection = db.collection('participants');
 const fypRegistrationCollection = db.collection('fyp_registrations');
 
 // Routes
-app.post('/devdaynodeapi/addParticipant', async (req, res) => {
+app.post('/addParticipant', async (req, res) => {
     try {
         const participant = req.body;
         const result = await participantCollection.insertOne(participant);
@@ -42,7 +42,7 @@ app.post('/devdaynodeapi/addParticipant', async (req, res) => {
     }
 });
 
-app.post('/devdaynodeapi/addFYPRegistration', async (req, res) => {
+app.post('/addFYPRegistration', async (req, res) => {
     try {
         const registration = req.body;
         const result = await fypRegistrationCollection.insertOne(registration);
