@@ -130,14 +130,6 @@ app.post('/devdaynodeapi/addFYPRegistration', async (req, res) => {
   }
 });
 
-
-// app.get('/devdaynodeapi/getFYPRegistrations', (req, res) => {
-//   FYP_Registration.find((error, results) => {
-//     if (error) throw error;
-//     res.send(results);
-//   });
-// });
-
 app.get('/devdaynodeapi', (req, res) => {
   res.send('Hello World!');
 
