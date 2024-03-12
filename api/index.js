@@ -127,11 +127,11 @@ db.once('open', function() {
 //   }
 // });
 
-app.get('/devdaynodeapi', (req, res) => {
-  mongoose.connect(process.env.MONGOURI);
+app.get('/devdaynodeapi', async (req, res) => {
+  await mongoose.connect(process.env.MONGOURI);
   const db = mongoose.connection;
   db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-  db.once('open', function() {
+  await db.once('open', function() {
     console.log('Connected to MongoDB');
   });
   res.send(mongoose.connection.readyState);
