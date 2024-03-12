@@ -9,7 +9,7 @@ const app = express();
 app.use(cors({origin: 'https://acmdevday.com'}));
 app.use(bodyParser.json());
 
-const connectionString = process.env.MONGOURI || '';
+const connectionString = process.env.MONGODB_URI || '';
 const client = new MongoClient(connectionString);
 
 let conn;
