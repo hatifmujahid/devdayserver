@@ -228,6 +228,10 @@ app.post('/addFYPRegistration', async (req, res) => {
   }
 });
 
+app.get('/', async (req, res) => {
+  res.send('Hi from Dev Day Server!');
+})
+
 app.post('/addAmbassador', async (req, res) => {
   try {
       const {
