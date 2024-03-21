@@ -69,7 +69,7 @@ const participantSchema = new mongoose.Schema({
   }
 });
 const PaymentSchema = new mongoose.Schema({
-  consumerNumber: {
+  consumer_number: {
     type: String,
     required: true
   },
@@ -315,34 +315,41 @@ app.post('/api/v1/BillInquiry', async (req, res) => {
   try {
     const username = req.get('username');
     const password = req.get('password');
-    const { consumerNumber, bank_mnemonic, reserved } = req.body;
+    const { consumer_number, bank_mnemonic, reserved } = req.body;
 
     // Check if the user is authorized
     if (username !== 'Test' || password !== '@bcd') {
-      return res.status(401).send('Unauthorized');
+      const error = {
+        response_code: '04',
+      }
+      res.send(error);
     }
-    
-    const inquiry = Payment.findOne({ consumerNumber: consumerNumber });
+
+    const inquiry = await Payment.findOne({ consumer_number: consumer_number });
+    // if consumer number not found
+    console.log(inquiry);
     if (!inquiry) {
       const error = {
         response_code: '01',
       }
-      res.send(error);
+      res.send(error)
     }
-    const response = {
-      response_code: '00',
-      consumer_detail: inquiry.consumer_detail,
-      bill_status:inquiry.status,
-      due_date:inquiry.due_date,
-      amount_within_dueDate: inquiry.fees_amount,
-      amount_after_dueDate: inquiry.fees_amount,
-      billing_month: "2404",
-      date_paid: inquiry.status === 'P' ? inquiry.date_paid : '        ',
-      amount_paid: inquiry.status === 'P' ? inquiry.fees_amount : '            ',
-      tran_auth_id: inquiry.status === 'P' ? inquiry.reference_code : '      ',
-      reserved
+    else{
+      const response = {
+        response_code: '00',
+        consumer_detail: inquiry.consumer_detail,
+        bill_status:inquiry.status,
+        due_date:inquiry.due_date,
+        amount_within_dueDate: inquiry.fees_amount,
+        amount_after_dueDate: inquiry.fees_amount,
+        billing_month: "2404",
+        date_paid: inquiry.status === 'P' ? inquiry.date_paid : '        ',
+        amount_paid: inquiry.status === 'P' ? inquiry.fees_amount : '            ',
+        tran_auth_id: inquiry.status === 'P' ? inquiry.reference_code : '      ',
+        reserved
+      }
+      res.send(response);
     }
-    res.send(response);
   } catch (error) {
     console.error('Error:', error);
     const response = {
@@ -356,14 +363,17 @@ app.post('/api/v1/BillPayment', async (req, res) => {
   try {
     const username = req.get('username');
     const password = req.get('password');
-    const { consumerNumber, tran_auth_id, transaction_amount, tran_date, tran_time, bank_mnemonic, reserved } = req.body;
+    const { consumer_number, tran_auth_id, transaction_amount, tran_date, tran_time, bank_mnemonic, reserved } = req.body;
 
     // Check if the user is authorized
     if (username !== 'Test' || password !== '@bcd') {
-      return res.status(401).send('Unauthorized');
+      const error = {
+        response_code: '04',
+      }
+      res.send(error);
     }
     
-    const inquiry = Payment.findOne({ consumerNumber: consumerNumber });
+    const inquiry = await Payment.findOne({ consumer_number: consumer_number });
     if (!inquiry) {
       const error = {
         response_code: '01',
@@ -380,7 +390,10 @@ app.post('/api/v1/BillPayment', async (req, res) => {
 
   } catch (error) {
     console.error('Error:', error);
-    res.status(500).send('Error paying bill');
+    const response = {
+      response_code: '03',
+    }
+    res.send(response);
   }
 });
 
