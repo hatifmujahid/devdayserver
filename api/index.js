@@ -25,9 +25,14 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', function() {
   console.log('Connected to MongoDB');
 });
+db.useDb('myFirstDatabase');
 
 // Define schema and models for Participants, Competition, and FYP_Registration
 const participantSchema = new mongoose.Schema({
+  consumerNumber: {
+    type: String,
+    required: true
+  },
   Team_Name: {
     type: String,
     required: true
@@ -62,6 +67,28 @@ const participantSchema = new mongoose.Schema({
     type: String,
     required: true
   }
+});
+const PaymentSchema = new mongoose.Schema({
+  consumerNumber: {
+    type: String,
+    required: true
+  },
+  consumer_detail: String,
+  bill_status: String,
+  due_date: String,
+  amount_within_dueDate: Number,
+  amount_after_dueDate: Number,
+  billing_month: String,
+  date_paid: String,
+  tran_auth_id: String,
+  reserved: String,
+  transaction_amount: Number,
+  tran_date: String,
+  tran_time: String,
+  bank_mnemonic: String,
+  identification_parameter: String,
+  amount_paid: Number,
+
 });
 
 //  Name
@@ -174,6 +201,7 @@ const fypRegistrationSchema = new mongoose.Schema({
 const Participant = mongoose.model('Participant', participantSchema);
 const FYP_Registration = mongoose.model('FYP_Registration', fypRegistrationSchema);
 const Ambassador = mongoose.model('Ambassador', ambassadorSchema);
+const Payment = mongoose.model('Payment', PaymentSchema);
 
 async function uploadImage(base64Image, imageName) {
   const client = new ftp.Client();
@@ -283,12 +311,79 @@ app.post('/addAmbassador', async (req, res) => {
   }
 });
 
-// app.get('/devdaynodeapi/getFYPRegistrations', (req, res) => {
-//   FYP_Registration.find((error, results) => {
-//     if (error) throw error;
-//     res.send(results);
-//   });
-// });
+app.post('/api/v1/BillInquiry', async (req, res) => {
+  try {
+    const username = req.get('username');
+    const password = req.get('password');
+    const { consumerNumber, bank_mnemonic, reserved } = req.body;
+
+    // Check if the user is authorized
+    if (username !== 'Test' || password !== '@bcd') {
+      return res.status(401).send('Unauthorized');
+    }
+    
+    const inquiry = Payment.findOne({ consumerNumber: consumerNumber });
+    if (!inquiry) {
+      const error = {
+        response_code: '01',
+      }
+      res.send(error);
+    }
+    const response = {
+      response_code: '00',
+      consumer_detail: inquiry.consumer_detail,
+      bill_status:inquiry.status,
+      due_date:inquiry.due_date,
+      amount_within_dueDate: inquiry.fees_amount,
+      amount_after_dueDate: inquiry.fees_amount,
+      billing_month: "2404",
+      date_paid: inquiry.status === 'P' ? inquiry.date_paid : '        ',
+      amount_paid: inquiry.status === 'P' ? inquiry.fees_amount : '            ',
+      tran_auth_id: inquiry.status === 'P' ? inquiry.reference_code : '      ',
+      reserved
+    }
+    res.send(response);
+  } catch (error) {
+    console.error('Error:', error);
+    const response = {
+      response_code: '01',
+    }
+    res.send(response);
+  }
+
+});
+app.post('/api/v1/BillPayment', async (req, res) => {
+  try {
+    const username = req.get('username');
+    const password = req.get('password');
+    const { consumerNumber, tran_auth_id, transaction_amount, tran_date, tran_time, bank_mnemonic, reserved } = req.body;
+
+    // Check if the user is authorized
+    if (username !== 'Test' || password !== '@bcd') {
+      return res.status(401).send('Unauthorized');
+    }
+    
+    const inquiry = Payment.findOne({ consumerNumber: consumerNumber });
+    if (!inquiry) {
+      const error = {
+        response_code: '01',
+
+      }
+      res.send(error);
+    }
+    const response = {
+      response_code: '00',
+      identification_parameter: inquiry.identification_parameter,
+      reserved
+    }
+    res.send(response);
+
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).send('Error paying bill');
+  }
+});
+
 
 
 app.listen(port, () => {
