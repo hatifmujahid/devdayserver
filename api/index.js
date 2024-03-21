@@ -326,7 +326,6 @@ app.post('/api/v1/BillInquiry', async (req, res) => {
     }
 
     const inquiry = await Payment.findOne({ consumer_number: consumer_number });
-
     if (!inquiry) {
       const error = {
         response_code: '01',
@@ -376,17 +375,17 @@ app.post('/api/v1/BillPayment', async (req, res) => {
     if (!inquiry) {
       const error = {
         response_code: '01',
-
       }
       res.send(error);
     }
-    const response = {
-      response_code: '00',
-      identification_parameter: inquiry.identification_parameter,
-      reserved
+    else {
+      const response = {
+        response_code: '00',
+        identification_parameter: inquiry.identification_parameter,
+        reserved
+      }
+      res.send(response);
     }
-    res.send(response);
-
   } catch (error) {
     console.error('Error:', error);
     const response = {
