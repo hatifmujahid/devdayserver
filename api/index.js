@@ -326,8 +326,7 @@ app.post('/api/v1/BillInquiry', async (req, res) => {
     }
 
     const inquiry = await Payment.findOne({ consumer_number: consumer_number });
-    // if consumer number not found
-    console.log(inquiry);
+
     if (!inquiry) {
       const error = {
         response_code: '01',
