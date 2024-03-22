@@ -364,14 +364,14 @@ app.post('/api/v1/BillPayment', async (req, res) => {
     const { consumer_number, tran_auth_id, transaction_amount, tran_date, tran_time, bank_mnemonic, reserved } = req.body;
 
     // Check if the user is authorized
-    if (username !== 'Test' || password !== '@bcd') {
+    if (username !== 'Test' || password !== '@bcd' || consumer_number === null) {
       const error = {
         response_code: '04',
       }
       res.send(error);
     }
     
-    const inquiry = await Payment.findOne({ consumer_number: consumer_number });
+    const inquiry = await Payment.findOne({ consumer_number: consumer_number, amount_within_dueDate:transation_amount});
     if (!inquiry) {
       const error = {
         response_code: '01',
@@ -387,12 +387,22 @@ app.post('/api/v1/BillPayment', async (req, res) => {
       res.send(error) 
     }
     else {
-      const response = {
-        response_code: '00',
-        identification_parameter: inquiry.identification_parameter,
-        reserved
+      try {
+        const inquiry = await Payment.updateOne({consumer_number:consumer_number}, {$set: {bill_status:'P', tran_auth_id:tran_auth_id, amount_paid:transaction_amount, date_paid:tran_date, , tran_time:tran_time}});
+        const response = {
+          response_code: '00',
+          identification_parameter: inquiry.identification_parameter,
+          reserved
+        }
+        res.send(response);
       }
-      res.send(response);
+      catch (error){
+        console.error('Error:', error);
+        const response = {
+          response_code: '05',
+        }
+        res.send(response);
+      }
     }
   } catch (error) {
     console.error('Error:', error);
