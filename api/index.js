@@ -6,6 +6,7 @@ const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
+const { stringify } = require('querystring');
 
 const app = express();
 const port = 5000;
@@ -76,18 +77,18 @@ const PaymentSchema = new mongoose.Schema({
   consumer_detail: String,
   bill_status: String,
   due_date: String,
-  amount_within_dueDate: Number,
-  amount_after_dueDate: Number,
+  amount_within_dueDate: String,
+  amount_after_dueDate: String,
   billing_month: String,
   date_paid: String,
   tran_auth_id: String,
   reserved: String,
-  transaction_amount: Number,
+  transaction_amount: String,
   tran_date: String,
   tran_time: String,
   bank_mnemonic: String,
   identification_parameter: String,
-  amount_paid: Number,
+  amount_paid: String,
 
 });
 
@@ -338,11 +339,11 @@ app.post('/api/v1/BillInquiry', async (req, res) => {
         consumer_detail: inquiry.consumer_detail,
         bill_status:inquiry.bill_status,
         due_date:inquiry.due_date,
-        amount_within_dueDate: '0000000'+inquiry.amount_within_dueDate,
-        amount_after_dueDate: '0000000'+inquiry.amount_after_dueDate,
+        amount_within_dueDate: inquiry.amount_within_dueDate,
+        amount_after_dueDate: inquiry.amount_after_dueDate,
         billing_month: "2404",
         date_paid: inquiry.bill_status === 'P' ? inquiry.date_paid : '        ',
-        amount_paid: inquiry.bill_status === 'P' ? '0000000'+inquiry.amount_paid : '            ',
+        amount_paid: inquiry.bill_status === 'P' ? inquiry.amount_paid : '            ',
         tran_auth_id: inquiry.bill_status === 'P' ? inquiry.tran_auth_id : '      ',
         reserved
       }
@@ -361,7 +362,7 @@ app.post('/api/v1/BillPayment', async (req, res) => {
   try {
     const username = req.get('username');
     const password = req.get('password');
-    const { consumer_number, tran_auth_id, transaction_amount, tran_date, tran_time, bank_mnemonic, reserved } = req.body;
+    const { consumer_number, tran_auth_id, transaction_amount, tran_date, tran_time, bank_mnemonic, reserved } = await req.body;
 
     // Check if the user is authorized
     if (username !== 'Test' || password !== '@bcd' || consumer_number === null) {
@@ -370,8 +371,9 @@ app.post('/api/v1/BillPayment', async (req, res) => {
       }
       res.send(error);
     }
-    
-    const inquiry = await Payment.findOne({ consumer_number: consumer_number, amount_within_dueDate:transation_amount});
+    // let updatedAmount = transaction_amount.slice(7);
+    const inquiry = await Payment.findOne({ consumer_number: consumer_number, transaction_amount: transaction_amount});
+
     if (!inquiry) {
       const error = {
         response_code: '01',
@@ -384,11 +386,12 @@ app.post('/api/v1/BillPayment', async (req, res) => {
         identification_parameter: inquiry.identification_parameter,
         reserved
       }
-      res.send(error) 
+      res.send(response);
     }
     else {
       try {
-        const inquiry = await Payment.updateOne({consumer_number:consumer_number}, {$set: {bill_status:'P', tran_auth_id:tran_auth_id, amount_paid:transaction_amount, date_paid:tran_date, tran_time:tran_time}});
+        
+        const updateInquiry = await Payment.updateOne({consumer_number:consumer_number}, {$set: {bill_status:'P', tran_auth_id:tran_auth_id, amount_paid:transaction_amount, date_paid:tran_date, tran_time:tran_time, reserved:reserved}});
         const response = {
           response_code: '00',
           identification_parameter: inquiry.identification_parameter,
