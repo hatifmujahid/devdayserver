@@ -221,7 +221,7 @@ const FYP_Registration = mongoose.model('FYP_Registration', fypRegistrationSchem
 const Ambassador = mongoose.model('Ambassador', ambassadorSchema);
 const Payment = mongoose.model('Payment', PaymentSchema);
 
-async function uploadImage(base64Image, imageName) {
+async function uploadImage(base64Image, imageName, folderName) {
   const client = new ftp.Client();
 
   try {
@@ -232,6 +232,7 @@ async function uploadImage(base64Image, imageName) {
           secure: false // Change to true if you're using FTPS
       });
 
+      console.log(base64Image)
       // Decode the Base64 image
       const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
       const buffer = Buffer.from(base64Data, 'base64');
@@ -242,7 +243,10 @@ async function uploadImage(base64Image, imageName) {
       stream.push(null); // Indicate the end of the stream
 
       // Upload the image stream to the FTP server
-      await client.uploadFrom(stream, `BrandAmbassadors/${imageName}.png`);
+      console.log("Uploading image")
+      console.log(`${folderName}/${imageName}.png`)
+      await client.uploadFrom(stream, `${folderName}/${imageName}.png`);
+      console.log("done")
 
   } catch (err) {
       console.error('Error:', err);
@@ -312,9 +316,9 @@ app.post('/addParticipant', async (req, res) => {
     else {
       let bill = 1000;
 
-      if (verifyReferenceCode(participantData.reference_code)) {
-        bill = 800;
-      }
+      //if (verifyReferenceCode(participantData.reference_code)) {
+        //  bill = 800;
+        //}
   
       participantData.fees_amount = bill;
       participantData.paid = false;
@@ -325,15 +329,21 @@ app.post('/addParticipant', async (req, res) => {
   
       participantData.consumerNumber = consumerNumber;
       
-      console.log(participantData.Competition_id);
-  
+      //console.log(participantData.Competition_id);
+      //console.log(participantData.image);
+      const file = participantData.image;
+      //console.log(file) 
+
+      await uploadImage(file, `${participantData.Leader_cnic}_${participantData.Leader_name}_${participantData.Competition}_${participantData.Leader_whatsapp_number}`, "PaymentReceipts");
+
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
-      const payment = new Payment({
-        consumer_number: consumerNumber,
-        
-      })
-      res.send(savedParticipant);
+      //const payment = new Payment({
+        //consumer_number: consumerNumber,
+        //})
+      //await payment.save();
+      
+      res.send("Participant added successfully");
     }
 
   } catch (error) {
@@ -377,7 +387,7 @@ app.post('/addAmbassador', async (req, res) => {
       } = req.body;
 
       // Upload the image to the FTP server
-      await uploadImage(file, `${name}_${college}_${year_of_batch}_${whatsapp_number}`);
+      await uploadImage(file, `${name}_${college}_${year_of_batch}_${whatsapp_number}`, "BrandAmbassadors");
 
       // Create and save the ambassador
       
