@@ -4,6 +4,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');;
 const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
+const { getCompetitionID } = require('./competition');
+
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
 const { stringify } = require('querystring');
@@ -50,12 +52,18 @@ const participantSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  Leader_cnic: {
+    type: String,
+    required: true
+  },
   mem1_name: String,
   mem1_email: String,
   mem1_whatsapp_number: String,
+  mem1_cnic: String,
   mem2_name: String,
   mem2_email: String,
   mem2_whatsapp_number: String,
+  mem2_cnic: String,
   fees_amount: {
     type: Number,
     required: true
@@ -64,11 +72,21 @@ const participantSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  reference_code: {
+  reference_code: String,
+  Competition: {
+    type: String,
+    required: true
+  },
+  Competition_id: {
+    type: String,
+    required: true
+  },
+  Competition_type: {
     type: String,
     required: true
   }
 });
+
 const PaymentSchema = new mongoose.Schema({
   consumer_number: {
     type: String,
@@ -89,7 +107,6 @@ const PaymentSchema = new mongoose.Schema({
   bank_mnemonic: String,
   identification_parameter: String,
   amount_paid: String,
-
 });
 
 //  Name
@@ -234,12 +251,91 @@ async function uploadImage(base64Image, imageName) {
   }
 }
 
+async function verifyReferenceCode(referenceCode) {
+  if (!referenceCode || referenceCode === '') {
+    return false;
+  }
+  if (referenceCode.length !== 7) {
+    return false;
+  }
+
+  if (referenceCode === "FAANA20") {
+    return true;
+  }
+
+  return false;
+}
+
+function generateConsumerNumber(cnic, competitionID) {
+  const prefix = '12305';
+  const middle = cnic.slice(2);
+  competitionID = competitionID.slice(1);
+  if (competitionID.length === 1) {
+    competitionID = '0' + competitionID;
+  }
+  const suffix = competitionID;
+  const consumerNumber = prefix + middle + suffix;
+  console.log(consumerNumber)
+  console.log(prefix + "+" + middle + "+" + suffix)
+  return consumerNumber;
+}
+
+async function checkCompetitionID(competitionID, cnic) {
+  const participant = await Participant.findOne({
+    Competition_id: competitionID,
+    Leader_cnic: cnic
+  });
+
+  console.log(participant !== null)
+
+  return participant !== null;
+}
+
 // Routes
 app.post('/addParticipant', async (req, res) => {
   try {
-    const participant = new Participant(req.body);
-    const savedParticipant = await participant.save();
-    res.send(savedParticipant);
+    let participantData = req.body;
+
+    console.log(participantData);
+
+    if (participantData.Leader_name === '' || participantData.Leader_email === '' || participantData.Leader_whatsapp_number === '' || participantData.Leader_cnic === '') {
+      res.status(400).send('Incomeplete data');
+      return
+    }
+
+    const competitionID = getCompetitionID(participantData.Competition);
+
+    if (await checkCompetitionID(competitionID, participantData.Leader_cnic)) {
+        res.status(400).send('Participant already registered for this competition');
+        return
+    }
+    else {
+      let bill = 1000;
+
+      if (verifyReferenceCode(participantData.reference_code)) {
+        bill = 800;
+      }
+  
+      participantData.fees_amount = bill;
+      participantData.paid = false;
+      
+      const competitionId = getCompetitionID(participantData.Competition);
+      participantData.Competition_id = competitionId;
+      const consumerNumber = generateConsumerNumber(participantData.Leader_cnic, competitionId);
+  
+      participantData.consumerNumber = consumerNumber;
+      
+      console.log(participantData.Competition_id);
+  
+      const participant = new Participant(participantData);
+      const savedParticipant = await participant.save();
+      const payment = new Payment({
+        consumer_number: consumerNumber,
+        
+      })
+      res.send(savedParticipant);
+    }
+
   } catch (error) {
     console.error(error);
     res.status(500).send('Error saving participant');
