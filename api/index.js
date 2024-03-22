@@ -388,7 +388,7 @@ app.post('/api/v1/BillPayment', async (req, res) => {
     }
     else {
       try {
-        const inquiry = await Payment.updateOne({consumer_number:consumer_number}, {$set: {bill_status:'P', tran_auth_id:tran_auth_id, amount_paid:transaction_amount, date_paid:tran_date, , tran_time:tran_time}});
+        const inquiry = await Payment.updateOne({consumer_number:consumer_number}, {$set: {bill_status:'P', tran_auth_id:tran_auth_id, amount_paid:transaction_amount, date_paid:tran_date, tran_time:tran_time}});
         const response = {
           response_code: '00',
           identification_parameter: inquiry.identification_parameter,
