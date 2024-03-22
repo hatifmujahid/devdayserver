@@ -378,6 +378,14 @@ app.post('/api/v1/BillPayment', async (req, res) => {
       }
       res.send(error);
     }
+    else if(inquiry.bill_status ==='P'){
+      const response = {
+        response_code: '03',
+        identification_parameter: inquiry.identification_parameter,
+        reserved
+      }
+      res.send(error) 
+    }
     else {
       const response = {
         response_code: '00',
@@ -389,7 +397,7 @@ app.post('/api/v1/BillPayment', async (req, res) => {
   } catch (error) {
     console.error('Error:', error);
     const response = {
-      response_code: '03',
+      response_code: '05',
     }
     res.send(response);
   }
