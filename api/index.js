@@ -336,14 +336,14 @@ app.post('/api/v1/BillInquiry', async (req, res) => {
       const response = {
         response_code: '00',
         consumer_detail: inquiry.consumer_detail,
-        bill_status:inquiry.status,
+        bill_status:inquiry.bill_status,
         due_date:inquiry.due_date,
-        amount_within_dueDate: inquiry.fees_amount,
-        amount_after_dueDate: inquiry.fees_amount,
+        amount_within_dueDate: inquiry.amount_within_dueDate,
+        amount_after_dueDate: inquiry.amount_after_dueDate,
         billing_month: "2404",
-        date_paid: inquiry.status === 'P' ? inquiry.date_paid : '        ',
-        amount_paid: inquiry.status === 'P' ? inquiry.fees_amount : '            ',
-        tran_auth_id: inquiry.status === 'P' ? inquiry.reference_code : '      ',
+        date_paid: inquiry.bill_status === 'P' ? inquiry.date_paid : '        ',
+        amount_paid: inquiry.bill_status === 'P' ? inquiry.amount_paid : '            ',
+        tran_auth_id: inquiry.bill_status === 'P' ? inquiry.tran_auth_id : '      ',
         reserved
       }
       res.send(response);
