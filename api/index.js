@@ -245,7 +245,8 @@ async function uploadImage(base64Image, imageName, folderName) {
       // Upload the image stream to the FTP server
       console.log("Uploading image")
       console.log(`${folderName}/${imageName}.png`)
-      await client.uploadFrom(stream, `${folderName}/${imageName}.png`);
+      const fileName = `${folderName}/${imageName}.png`.replace(/\s/g, '_');
+      await client.uploadFrom(stream, fileName);
       console.log("done")
 
   } catch (err) {
@@ -343,7 +344,10 @@ app.post('/addParticipant', async (req, res) => {
         //})
       //await payment.save();
       
-      res.send("Participant added successfully");
+      res.send({
+        success: true,
+        message: 'Participant added successfully',
+      });
     }
 
   } catch (error) {
