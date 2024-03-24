@@ -11,6 +11,12 @@ const getCompetitionID = (competition) => {
         }
     }
 
+    for (let i = 0; i < roboticsCompetitions.length; i++) {
+        if (roboticsCompetitions[i].hasOwnProperty(competition)) {
+            return roboticsCompetitions[i][competition];
+        }
+    }
+
     return null;
 }
 
@@ -39,5 +45,13 @@ const generalCompetitions = [{
     'FSX': 'G07',
     'Battlestation': 'G08',
 }]
+
+const roboticsCompetitions = [
+    {
+        'Line Following Robot (LFR) Competition': 'R01',
+        'Robo Soccer Competition': 'R02',
+        // Add more robotics competitions here as needed
+    }
+];
 
 module.exports = { getCompetitionID }
