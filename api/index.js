@@ -302,6 +302,7 @@ app.post('/addParticipant', async (req, res) => {
     let participantData = req.body;
 
     console.log(participantData);
+    participantData.Leader_cnic = participantData.Leader_cnic.replace(/-/g, "");
 
     if (participantData.Leader_name === '' || participantData.Leader_email === '' || participantData.Leader_whatsapp_number === '' || participantData.Leader_cnic === '') {
       res.status(400).send('Incomeplete data');
@@ -323,6 +324,9 @@ app.post('/addParticipant', async (req, res) => {
   
       participantData.fees_amount = bill;
       participantData.paid = false;
+      participantData.Leader_cnic = participantData.Leader_cnic.replace(/-/g, "");
+
+      
       
       const competitionId = getCompetitionID(participantData.Competition);
       participantData.Competition_id = competitionId;
