@@ -311,7 +311,16 @@ app.post('/addAmbassador', async (req, res) => {
       res.status(500).send('Error saving ambassador');
   }
 });
-
+app.post('/addPayment', async (req, res) => {
+  try {
+    const payment = new Payment(req.body);
+    const savedPayment = await payment.save();
+    res.send(savedPayment);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error saving payment');
+  }
+});
 app.post('/api/v1/BillInquiry', async (req, res) => {
   try {
     const username = req.get('username');
@@ -339,8 +348,8 @@ app.post('/api/v1/BillInquiry', async (req, res) => {
         consumer_detail: inquiry.consumer_detail,
         bill_status:inquiry.bill_status,
         due_date:inquiry.due_date,
-        amount_within_dueDate: inquiry.amount_within_dueDate,
-        amount_after_dueDate: inquiry.amount_after_dueDate,
+        amount_within_dueDate: '+'+inquiry.amount_within_dueDate,
+        amount_after_dueDate: '+'+inquiry.amount_after_dueDate,
         billing_month: "2404",
         date_paid: inquiry.bill_status === 'P' ? inquiry.date_paid : '        ',
         amount_paid: inquiry.bill_status === 'P' ? inquiry.amount_paid : '            ',
