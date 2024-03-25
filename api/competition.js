@@ -46,7 +46,7 @@ const csCompetitions = [
         maxEntry: 50,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     },
     {
         name: 'Code Sprint',
@@ -54,7 +54,7 @@ const csCompetitions = [
         maxEntry: 80,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     },
     {
         name: 'PsuedoWar',
@@ -62,7 +62,7 @@ const csCompetitions = [
         maxEntry: 45,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     },
     {
         name: 'Speed Debugging',
@@ -70,7 +70,7 @@ const csCompetitions = [
         maxEntry: 45,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     },
     {
         name: 'Query Quest',
@@ -78,7 +78,7 @@ const csCompetitions = [
         maxEntry: 45,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     },
     {
         name: 'Code in Dark',
@@ -86,7 +86,7 @@ const csCompetitions = [
         maxEntry: 30,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     },
     {
         name: 'Data Science',
@@ -94,7 +94,7 @@ const csCompetitions = [
         maxEntry: 45,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     },
     {
         name: 'AppDev',
@@ -102,7 +102,7 @@ const csCompetitions = [
         maxEntry: 15,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     },
     {
         name: 'Web Dev',
@@ -110,7 +110,7 @@ const csCompetitions = [
         maxEntry: 30,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     },
     {
         name: 'UI/UX Design',
@@ -118,7 +118,7 @@ const csCompetitions = [
         maxEntry: 20,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     },
     {
         name: 'Capture The Flag',
@@ -126,7 +126,7 @@ const csCompetitions = [
         maxEntry: 35,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     },
     {
         name: 'Data Visualization',
@@ -134,7 +134,7 @@ const csCompetitions = [
         maxEntry: 30,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     },
     {
         name: 'SyncOS Challenge',
@@ -142,7 +142,7 @@ const csCompetitions = [
         maxEntry: 80,
         minMembers: 1,
         maxMembers: 3,
-        price: 1200
+        price: 1000
     }
 ];
 
@@ -174,7 +174,7 @@ const generalCompetitions = [{
     maxEntry: 30,
     minMembers: 2,
     maxMembers: 4,
-    price: 1000
+    price: 1200
 },
 {
     name: 'Sketching Competition',
@@ -190,7 +190,7 @@ const generalCompetitions = [{
     maxEntry: 40,
     minMembers: 1,
     maxMembers: 2,
-    price: 25
+    price: 1000
 },
 // Add more general competitions here as needed
 ];
