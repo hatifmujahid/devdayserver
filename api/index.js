@@ -4,7 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');;
 const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
-const { getCompetitionID } = require('./competition');
+const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp } = require('./competition');
 
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
@@ -295,6 +295,91 @@ async function checkCompetitionID(competitionID, cnic) {
 
   return participant !== null;
 }
+
+app.get('/getCompetitions', async (req, res) => {
+  try {
+      const csComp = getCsComp();
+      const general = getGenComp();
+      const robo = getRoboComp();
+      const esports = getEsportsComp();
+
+      // Function to count entries for a competition
+      const countEntries = async (competitionId) => {
+          const count = await Participant.countDocuments({ Competition_id: competitionId });
+          return count;
+      };
+
+      // Array to store promises for counting entries
+      const countPromises = [];
+
+      // Push promises for counting CS Competitions
+      for (const comp of csComp) {
+          countPromises.push(countEntries(comp.id));
+      }
+
+      // Push promises for counting General Competitions
+      for (const comp of general) {
+          countPromises.push(countEntries(comp.id));
+      }
+
+      // Push promises for counting Robotics Competitions
+      for (const comp of robo) {
+          countPromises.push(countEntries(comp.id));
+      }
+
+      for (const comp of esports) {
+          countPromises.push(countEntries(comp.id));
+      }
+
+      // Wait for all promises to resolve
+      const counts = await Promise.all(countPromises);
+
+      // Organize competitions by type based on counts
+      const competitionsByType = {
+          CS: [],
+          General: [],
+          Robotics: [],
+          Esports: []
+      };
+
+      let index = 0;
+
+      // Push competitions to respective type arrays based on counts
+      for (const comp of csComp) {
+          if (counts[index] < comp.maxEntry) {
+              competitionsByType.CS.push(comp);
+          }
+          index++;
+      }
+
+      for (const comp of general) {
+          if (counts[index] < comp.maxEntry) {
+              competitionsByType.General.push(comp);
+          }
+          index++;
+      }
+
+      for (const comp of robo) {
+          if (counts[index] < comp.maxEntry) {
+              competitionsByType.Robotics.push(comp);
+          }
+          index++;
+      }
+
+      for (const comp of esports) {
+        if (counts[index] < comp.maxEntry) {
+            competitionsByType.Esports.push(comp);
+        }
+        index++;
+      }
+
+      res.json(competitionsByType);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 
 // Routes
 app.post('/addParticipant', async (req, res) => {

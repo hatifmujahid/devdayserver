@@ -1,16 +1,19 @@
-const getCompetitionID = (competition) => {
+const getCompetitionDetails = (competition) => {
+    // Check CS Competitions
     for (let i = 0; i < csCompetitions.length; i++) {
         if (csCompetitions[i].hasOwnProperty(competition)) {
             return csCompetitions[i][competition];
         }
     }
 
+    // Check General Competitions
     for (let i = 0; i < generalCompetitions.length; i++) {
         if (generalCompetitions[i].hasOwnProperty(competition)) {
             return generalCompetitions[i][competition];
         }
     }
 
+    // Check Robotics Competitions
     for (let i = 0; i < roboticsCompetitions.length; i++) {
         if (roboticsCompetitions[i].hasOwnProperty(competition)) {
             return roboticsCompetitions[i][competition];
@@ -20,38 +23,205 @@ const getCompetitionID = (competition) => {
     return null;
 }
 
-const csCompetitions = [{
-    'Capture The Flag': 'CS01',
-    'Speed Programming': 'CS02',
-    'Database Design': 'CS03',
-    'Code in the Dark': 'CS04',
-    'PsuedoWar': 'CS05',
-    'Speed Debugging': 'CS06',
-    'UI/UX': 'CS07',
-    'Data Visualization': 'CS08',
-    'Web Development': 'CS09',
-    'Data Science': 'CS10',
-    'App Development': 'CS11',
-    'SyncOS': 'CS12',
-}]
+const getCsComp = () => {
+    return csCompetitions;
+}
 
-const generalCompetitions = [{
-    'Photography': 'G01',
-    'Reels competition': 'G02',
-    'Board games': 'G03',
-    'Sketching': 'G04',
-    'Podium game': 'G05',
-    'Scavenger hunt': 'G06',
-    'FSX': 'G07',
-    'Battlestation': 'G08',
-}]
+const getGenComp = () => {
+    return generalCompetitions;
+}
 
-const roboticsCompetitions = [
+const getRoboComp = () => {
+    return roboticsCompetitions
+}
+
+const getEsportsComp = () => {
+    return esports
+}
+
+const csCompetitions = [
     {
-        'Line Following Robot (LFR) Competition': 'R01',
-        'Robo Soccer Competition': 'R02',
-        // Add more robotics competitions here as needed
+        name: 'Competitive Programming',
+        id: 'CS01',
+        maxEntry: 50,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
+    },
+    {
+        name: 'Code Sprint',
+        id: 'CS02',
+        maxEntry: 80,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
+    },
+    {
+        name: 'PsuedoWar',
+        id: 'CS03',
+        maxEntry: 45,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
+    },
+    {
+        name: 'Speed Debugging',
+        id: 'CS04',
+        maxEntry: 45,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
+    },
+    {
+        name: 'Query Quest',
+        id: 'CS05',
+        maxEntry: 45,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
+    },
+    {
+        name: 'Code in Dark',
+        id: 'CS06',
+        maxEntry: 30,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
+    },
+    {
+        name: 'Data Science',
+        id: 'CS07',
+        maxEntry: 45,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
+    },
+    {
+        name: 'AppDev',
+        id: 'CS08',
+        maxEntry: 15,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
+    },
+    {
+        name: 'Web Dev',
+        id: 'CS09',
+        maxEntry: 30,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
+    },
+    {
+        name: 'UI/UX Design',
+        id: 'CS10',
+        maxEntry: 20,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
+    },
+    {
+        name: 'Capture The Flag',
+        id: 'CS11',
+        maxEntry: 35,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
+    },
+    {
+        name: 'Data Visualization',
+        id: 'CS12',
+        maxEntry: 30,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
+    },
+    {
+        name: 'SyncOS Challenge',
+        id: 'CS13',
+        maxEntry: 80,
+        minMembers: 1,
+        maxMembers: 3,
+        price: 1200
     }
 ];
 
-module.exports = { getCompetitionID }
+const generalCompetitions = [{
+    name: 'Photography',
+    id: 'G01',
+    maxEntry: 50,
+    minMembers: 1,
+    maxMembers: 1,
+    price: 1000
+}, {
+    name: 'Reels competition',
+    id: 'G02',
+    maxEntry: 50,
+    minMembers: 1,
+    maxMembers: 2,
+    price: 1000
+}, {
+    name: 'Board games',
+    id: 'G03',
+    maxEntry: 35,
+    minMembers: 1,
+    maxMembers: 1,
+    price: 1000
+},
+{
+    name: 'Scavenger hunt',
+    id: 'G04',
+    maxEntry: 30,
+    minMembers: 2,
+    maxMembers: 4,
+    price: 1000
+},
+{
+    name: 'Sketching Competition',
+    id: 'G05',
+    maxEntry: 50,
+    minMembers: 1,
+    maxMembers: 1,
+    price: 1000
+},
+{
+    name: 'Podium game',
+    id: 'G06',
+    maxEntry: 40,
+    minMembers: 1,
+    maxMembers: 2,
+    price: 25
+},
+// Add more general competitions here as needed
+];
+
+const roboticsCompetitions = [{
+    name: 'Line Following Robot (LFR) Competition',
+    id: 'R01',
+    maxEntry: 15,
+    minMembers: 1,
+    maxMembers: 4,
+    price: 1500
+}, {
+    name: 'Robo Soccer Competition',
+    id: 'R02',
+    maxEntry: 20,
+    minMembers: 1,
+    maxMembers: 4,
+    price: 1500
+},
+// Add more robotics competitions here as needed
+];
+
+const esports = [
+    {
+        name: 'CS2',
+        id: 'ES01',
+        maxEntry: 8,
+        minMembers: 1,
+        maxMembers: 5,
+        price: 2500
+    }
+]
+
+module.exports = { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp };
