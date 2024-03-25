@@ -4,6 +4,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');;
 const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
+const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp } = require('./competition');
+
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
 const { stringify } = require('querystring');
@@ -50,12 +52,18 @@ const participantSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  Leader_cnic: {
+    type: String,
+    required: true
+  },
   mem1_name: String,
   mem1_email: String,
   mem1_whatsapp_number: String,
+  mem1_cnic: String,
   mem2_name: String,
   mem2_email: String,
   mem2_whatsapp_number: String,
+  mem2_cnic: String,
   fees_amount: {
     type: Number,
     required: true
@@ -64,11 +72,21 @@ const participantSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  reference_code: {
+  reference_code: String,
+  Competition: {
+    type: String,
+    required: true
+  },
+  Competition_id: {
+    type: String,
+    required: true
+  },
+  Competition_type: {
     type: String,
     required: true
   }
 });
+
 const PaymentSchema = new mongoose.Schema({
   consumer_number: {
     type: String,
@@ -89,7 +107,6 @@ const PaymentSchema = new mongoose.Schema({
   bank_mnemonic: String,
   identification_parameter: String,
   amount_paid: String,
-
 });
 
 //  Name
@@ -204,7 +221,7 @@ const FYP_Registration = mongoose.model('FYP_Registration', fypRegistrationSchem
 const Ambassador = mongoose.model('Ambassador', ambassadorSchema);
 const Payment = mongoose.model('Payment', PaymentSchema);
 
-async function uploadImage(base64Image, imageName) {
+async function uploadImage(base64Image, imageName, folderName) {
   const client = new ftp.Client();
 
   try {
@@ -215,6 +232,7 @@ async function uploadImage(base64Image, imageName) {
           secure: false // Change to true if you're using FTPS
       });
 
+      console.log(base64Image)
       // Decode the Base64 image
       const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
       const buffer = Buffer.from(base64Data, 'base64');
@@ -225,7 +243,11 @@ async function uploadImage(base64Image, imageName) {
       stream.push(null); // Indicate the end of the stream
 
       // Upload the image stream to the FTP server
-      await client.uploadFrom(stream, `BrandAmbassadors/${imageName}.png`);
+      console.log("Uploading image")
+      console.log(`${folderName}/${imageName}.png`)
+      const fileName = `${folderName}/${imageName}.png`.replace(/\s/g, '_');
+      await client.uploadFrom(stream, fileName);
+      console.log("done")
 
   } catch (err) {
       console.error('Error:', err);
@@ -234,12 +256,189 @@ async function uploadImage(base64Image, imageName) {
   }
 }
 
+async function verifyReferenceCode(referenceCode) {
+  if (!referenceCode || referenceCode === '') {
+    return false;
+  }
+  if (referenceCode.length !== 7) {
+    return false;
+  }
+
+  if (referenceCode === "FAANA20") {
+    return true;
+  }
+
+  return false;
+}
+
+function generateConsumerNumber(cnic, competitionID) {
+  const prefix = '12305';
+  const middle = cnic.slice(2);
+  competitionID = competitionID.slice(1);
+  if (competitionID.length === 1) {
+    competitionID = '0' + competitionID;
+  }
+  const suffix = competitionID;
+  const consumerNumber = prefix + middle + suffix;
+  console.log(consumerNumber)
+  console.log(prefix + "+" + middle + "+" + suffix)
+  return consumerNumber;
+}
+
+async function checkCompetitionID(competitionID, cnic) {
+  const participant = await Participant.findOne({
+    Competition_id: competitionID,
+    Leader_cnic: cnic
+  });
+
+  console.log(participant !== null)
+
+  return participant !== null;
+}
+
+app.get('/getCompetitions', async (req, res) => {
+  try {
+      const csComp = getCsComp();
+      const general = getGenComp();
+      const robo = getRoboComp();
+      const esports = getEsportsComp();
+
+      // Function to count entries for a competition
+      const countEntries = async (competitionId) => {
+          const count = await Participant.countDocuments({ Competition_id: competitionId });
+          return count;
+      };
+
+      // Array to store promises for counting entries
+      const countPromises = [];
+
+      // Push promises for counting CS Competitions
+      for (const comp of csComp) {
+          countPromises.push(countEntries(comp.id));
+      }
+
+      // Push promises for counting General Competitions
+      for (const comp of general) {
+          countPromises.push(countEntries(comp.id));
+      }
+
+      // Push promises for counting Robotics Competitions
+      for (const comp of robo) {
+          countPromises.push(countEntries(comp.id));
+      }
+
+      for (const comp of esports) {
+          countPromises.push(countEntries(comp.id));
+      }
+
+      // Wait for all promises to resolve
+      const counts = await Promise.all(countPromises);
+
+      // Organize competitions by type based on counts
+      const competitionsByType = {
+          CS: [],
+          General: [],
+          Robotics: [],
+          Esports: []
+      };
+
+      let index = 0;
+
+      // Push competitions to respective type arrays based on counts
+      for (const comp of csComp) {
+          if (counts[index] < comp.maxEntry) {
+              competitionsByType.CS.push(comp);
+          }
+          index++;
+      }
+
+      for (const comp of general) {
+          if (counts[index] < comp.maxEntry) {
+              competitionsByType.General.push(comp);
+          }
+          index++;
+      }
+
+      for (const comp of robo) {
+          if (counts[index] < comp.maxEntry) {
+              competitionsByType.Robotics.push(comp);
+          }
+          index++;
+      }
+
+      for (const comp of esports) {
+        if (counts[index] < comp.maxEntry) {
+            competitionsByType.Esports.push(comp);
+        }
+        index++;
+      }
+
+      res.json(competitionsByType);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 // Routes
 app.post('/addParticipant', async (req, res) => {
   try {
-    const participant = new Participant(req.body);
-    const savedParticipant = await participant.save();
-    res.send(savedParticipant);
+    let participantData = req.body;
+
+    console.log(participantData);
+    participantData.Leader_cnic = participantData.Leader_cnic.replace(/-/g, "");
+
+    if (participantData.Leader_name === '' || participantData.Leader_email === '' || participantData.Leader_whatsapp_number === '' || participantData.Leader_cnic === '') {
+      res.status(400).send('Incomeplete data');
+      return
+    }
+
+    const competitionID = getCompetitionID(participantData.Competition);
+
+    if (await checkCompetitionID(competitionID, participantData.Leader_cnic)) {
+        res.status(400).send('Participant already registered for this competition');
+        return
+    }
+    else {
+      let bill = 1000;
+
+      //if (verifyReferenceCode(participantData.reference_code)) {
+        //  bill = 800;
+        //}
+  
+      participantData.fees_amount = bill;
+      participantData.paid = false;
+      participantData.Leader_cnic = participantData.Leader_cnic.replace(/-/g, "");
+
+      
+      
+      const competitionId = getCompetitionID(participantData.Competition);
+      participantData.Competition_id = competitionId;
+      const consumerNumber = generateConsumerNumber(participantData.Leader_cnic, competitionId);
+  
+      participantData.consumerNumber = consumerNumber;
+      
+      //console.log(participantData.Competition_id);
+      //console.log(participantData.image);
+      const file = participantData.image;
+      //console.log(file) 
+
+      await uploadImage(file, `${participantData.Leader_cnic}_${participantData.Leader_name}_${participantData.Competition}_${participantData.Leader_whatsapp_number}`, "PaymentReceipts");
+
+      const participant = new Participant(participantData);
+      const savedParticipant = await participant.save();
+      //const payment = new Payment({
+        //consumer_number: consumerNumber,
+        //})
+      //await payment.save();
+      
+      res.send({
+        success: true,
+        message: 'Participant added successfully',
+      });
+    }
+
   } catch (error) {
     console.error(error);
     res.status(500).send('Error saving participant');
@@ -281,7 +480,7 @@ app.post('/addAmbassador', async (req, res) => {
       } = req.body;
 
       // Upload the image to the FTP server
-      await uploadImage(file, `${name}_${college}_${year_of_batch}_${whatsapp_number}`);
+      await uploadImage(file, `${name}_${college}_${year_of_batch}_${whatsapp_number}`, "BrandAmbassadors");
 
       // Create and save the ambassador
       
