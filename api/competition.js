@@ -228,6 +228,7 @@ const generalCompetitions = [{
     minMembers: 1,
     maxMembers: 2,
     price: 1000
+},
 // Add more general competitions here as needed
 ];
 
