@@ -39,6 +39,35 @@ const getEsportsComp = () => {
     return esports
 }
 
+const getBill = (competition) => {
+    let bill = 0;
+    for (let i = 0; i < csCompetitions.length; i++) {
+        if (csCompetitions[i].id === competition) {
+            bill = csCompetitions[i].price;
+        }
+    }
+
+    for (let i = 0; i < generalCompetitions.length; i++) {
+        if (generalCompetitions[i].id === competition) {
+            bill = generalCompetitions[i].price;
+        }
+    }
+
+    for (let i = 0; i < roboticsCompetitions.length; i++) {
+        if (roboticsCompetitions[i].id === competition) {
+            bill = roboticsCompetitions[i].price;
+        }
+    }
+
+    for (let i = 0; i < esports.length; i++) {
+        if (esports[i].id === competition) {
+            bill = esports[i].price;
+        }
+    }
+
+    return bill;
+}
+
 const csCompetitions = [
     {
         name: 'Competitive Programming',
@@ -224,4 +253,27 @@ const esports = [
     }
 ]
 
-module.exports = { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp };
+const getCompetitionID = (competition) => {
+    let id = '';
+    for (let i = 0; i < csCompetitions.length; i++) {
+        if (csCompetitions[i].name === competition) {
+            id = csCompetitions[i].id;
+        }
+    }
+
+    for (let i = 0; i < generalCompetitions.length; i++) {
+        if (generalCompetitions[i].name === competition) {
+            id = generalCompetitions[i].id;
+        }
+    }
+
+    for (let i = 0; i < roboticsCompetitions.length; i++) {
+        if (roboticsCompetitions[i].name === competition) {
+            id = roboticsCompetitions[i].id;
+        }
+    }
+
+    return id;
+}
+
+module.exports = { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp, getBill, getCompetitionID};
