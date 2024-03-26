@@ -221,6 +221,13 @@ const generalCompetitions = [{
     maxMembers: 2,
     price: 1000
 },
+{
+    name: 'Fast Stock Exchange',
+    id: 'G07',
+    maxEntry: 20,
+    minMembers: 1,
+    maxMembers: 2,
+    price: 1000
 // Add more general competitions here as needed
 ];
 
