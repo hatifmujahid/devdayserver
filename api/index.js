@@ -4,7 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');;
 const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
-const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp } = require('./competition');
+const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp, getCompetitionID } = require('./competition');
 
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
