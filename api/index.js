@@ -607,7 +607,9 @@ app.post('/api/v1/BillPayment', async (req, res) => {
       res.send(error);
     }
     // let updatedAmount = transaction_amount.slice(7);
-    const inquiry = await Payment.findOne({ consumer_number: consumer_number, transaction_amount: transaction_amount});
+    const amount = '0'+transaction_amount;
+    const inquiry = await Payment.findOne({ consumer_number: consumer_number, amount_within_dueDate:amount });
+    console.log(inquiry.consumer_number);
 
     if (!inquiry) {
       const error = {
