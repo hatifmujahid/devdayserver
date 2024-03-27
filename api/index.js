@@ -4,7 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');;
 const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
-const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp, getBill , getCompetitionID} = require('./competition');
+const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp } = require('./competition');
 
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
@@ -56,27 +56,14 @@ const participantSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-
   mem1_name: String,
   mem1_email: String,
   mem1_whatsapp_number: String,
   mem1_cnic: String,
-
   mem2_name: String,
   mem2_email: String,
   mem2_whatsapp_number: String,
   mem2_cnic: String,
-
-  mem3_name: String,
-  mem3_email: String,
-  mem3_whatsapp_number: String,
-  mem3_cnic: String,
-
-  mem4_name: String,
-  mem4_email: String,
-  mem4_whatsapp_number: String,
-  mem4_cnic: String,
-
   fees_amount: {
     type: Number,
     required: true
@@ -410,35 +397,21 @@ app.post('/addParticipant', async (req, res) => {
     const competitionID = getCompetitionID(participantData.Competition);
 
     if (await checkCompetitionID(competitionID, participantData.Leader_cnic)) {
-        res.status(400).send({
-          alreadyRegistered: true,
-          success: false,
-          message: 'Participant already registered for this competition'
-        });
+        res.status(400).send('Participant already registered for this competition');
         return
     }
     else {
+      let bill = 1000;
 
-      let bill = getBill(participantData.Competition)
-
-      if (verifyReferenceCode(participantData.reference_code)) {
-        //20% discount 
-        bill = bill - (bill * 0.2);
-      }
+      //if (verifyReferenceCode(participantData.reference_code)) {
+        //  bill = 800;
+        //}
   
       participantData.fees_amount = bill;
       participantData.paid = false;
-
       participantData.Leader_cnic = participantData.Leader_cnic.replace(/-/g, "");
-      participantData.Leader_whatsapp_number = participantData.Leader_whatsapp_number.replace(/-/g, "");
-      participantData.mem1_cnic = participantData.mem1_cnic.replace(/-/g, "");
-      participantData.mem1_whatsapp_number = participantData.mem1_whatsapp_number.replace(/-/g, "");
-      participantData.mem2_cnic = participantData.mem2_cnic.replace(/-/g, "");
-      participantData.mem2_whatsapp_number = participantData.mem2_whatsapp_number.replace(/-/g, "");
-      participantData.mem3_cnic = participantData.mem3_cnic.replace(/-/g, "");
-      participantData.mem3_whatsapp_number = participantData.mem3_whatsapp_number.replace(/-/g, "");
-      participantData.mem4_cnic = participantData.mem4_cnic.replace(/-/g, "");
-      participantData.mem4_whatsapp_number = participantData.mem4_whatsapp_number.replace(/-/g, "");
+
+      
       
       const competitionId = getCompetitionID(participantData.Competition);
       participantData.Competition_id = competitionId;
@@ -607,9 +580,7 @@ app.post('/api/v1/BillPayment', async (req, res) => {
       res.send(error);
     }
     // let updatedAmount = transaction_amount.slice(7);
-    const amount = '0'+transaction_amount;
-    const inquiry = await Payment.findOne({ consumer_number: consumer_number, amount_within_dueDate:amount });
-    console.log(inquiry.consumer_number);
+    const inquiry = await Payment.findOne({ consumer_number: consumer_number, transaction_amount: transaction_amount});
 
     if (!inquiry) {
       const error = {
