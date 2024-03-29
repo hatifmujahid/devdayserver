@@ -1,5 +1,7 @@
 const nodemailer = require('nodemailer');
 const fs = require('fs');
+const path = require("path")
+const emailTemplatePath = path.join(__dirname, 'emailTemplates', 'index.html');
 
 const transporter = nodemailer.createTransport({
   host: 'nuceskhi.acm.org',
@@ -14,7 +16,7 @@ const transporter = nodemailer.createTransport({
 const sendEmail_ConsumerNumber = async (data) => {
 
   // Read the HTML file
-  const emailTemplate = fs.readFileSync('./emailTemplates/index.html', 'utf8');
+  const emailTemplate = fs.readFileSync( emailTemplatePath, 'utf8');
 let compiledTemplate = emailTemplate.replace(/{{User}}/g, data.name);
 compiledTemplate = compiledTemplate.replace(/{{CompetitionName}}/g, data.competition);
   compiledTemplate = compiledTemplate.replace('{{consumerNumber}}', data.consumerNumber);
@@ -41,7 +43,7 @@ compiledTemplate = compiledTemplate.replace(/{{CompetitionName}}/g, data.competi
   const mailOptions = {
     from: 'devday@nuceskhi.acm.org',
     to: data.email,
-    subject: "Testinggggggggg Eaillllllll for DDDDDDD",
+    subject: "Registration Confirmation for Dev Day 2024",
     html: compiledTemplate,
   };
 
