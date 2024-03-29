@@ -39,34 +39,18 @@ const getEsportsComp = () => {
     return esports
 }
 
-const getBill = (competition) => {
+const getBill = (competitionName) => {
     let bill = 0;
-    for (let i = 0; i < csCompetitions.length; i++) {
-        if (csCompetitions[i].id === competition) {
-            bill = csCompetitions[i].price;
+    const allCompetitions = [...csCompetitions, ...generalCompetitions, ...roboticsCompetitions, ...esports];
+    for (let i = 0; i < allCompetitions.length; i++) {
+        if (allCompetitions[i].name === competitionName) {
+            bill = allCompetitions[i].price;
+            break; // Once the competition is found, no need to continue looping
         }
     }
-
-    for (let i = 0; i < generalCompetitions.length; i++) {
-        if (generalCompetitions[i].id === competition) {
-            bill = generalCompetitions[i].price;
-        }
-    }
-
-    for (let i = 0; i < roboticsCompetitions.length; i++) {
-        if (roboticsCompetitions[i].id === competition) {
-            bill = roboticsCompetitions[i].price;
-        }
-    }
-
-    for (let i = 0; i < esports.length; i++) {
-        if (esports[i].id === competition) {
-            bill = esports[i].price;
-        }
-    }
-
     return bill;
 }
+
 
 const csCompetitions = [
     {

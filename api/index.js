@@ -260,9 +260,10 @@ async function uploadImage(base64Image, imageName, folderName) {
   }
 }
 
-async function verifyReferenceCode(referenceCode) {
+function verifyReferenceCode(referenceCode) {
 
   const referenceCodes = ["FAANA20"]
+
   if (!referenceCode || referenceCode === '') {
     return false;
   }
@@ -282,7 +283,7 @@ async function verifyReferenceCode(referenceCode) {
 function generateConsumerNumber(cnic, competitionID) {
   const prefix = '00008';
   const middle = cnic.slice(2);
-  competitionID = competitionID.slice(1);
+  competitionID = competitionID.slice(2);
   if (competitionID.length === 1) {
     competitionID = '0' + competitionID;
   }
