@@ -480,7 +480,7 @@ app.post('/addParticipant', async (req, res) => {
         competition: participantData.Competition,
       }
 
-      sendEmail_ConsumerNumber(data);
+      await sendEmail_ConsumerNumber(data);
       
       res.send({
         success: true,
