@@ -14,7 +14,10 @@ const { stringify } = require('querystring');
 const app = express();
 const port = 5000;
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173' // Allow requests from this origin
+}));
+
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 app.use(bodyParser.json());
