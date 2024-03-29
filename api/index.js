@@ -6,6 +6,7 @@ const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
 const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp, getCompetitionID, getBill } = require('./competition');
 const { sendEmail_ConsumerNumber, sendEmail_PaymentReceived  } = require('./Email');
+const cors = require('cors');
 
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
@@ -13,6 +14,8 @@ const { stringify } = require('querystring');
 
 const app = express();
 const port = 5000;
+
+app.use(cors()); // allowing cors for testing only, remove this afterwards
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
