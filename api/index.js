@@ -215,7 +215,7 @@ const fypRegistrationSchema = new mongoose.Schema({
     required: true
   },
   fees_amount: {
-    type: mongoose.Decimal128,
+    type: String,
     required: true
   },
   paid: {
