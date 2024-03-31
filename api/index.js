@@ -214,6 +214,18 @@ const fypRegistrationSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  abstract : {
+    type: String,
+    required: true
+  },
+  features : {
+    type: String,
+    required: true
+  },
+  uniqueness : {
+    type: String,
+    required: true
+  },
   fees_amount: {
     type: String,
     required: true
@@ -224,8 +236,7 @@ const fypRegistrationSchema = new mongoose.Schema({
     default: false
   },
   reference_code: {
-    type: String,
-    required: true
+    type: String
   }
 });
 
