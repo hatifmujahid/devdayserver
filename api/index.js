@@ -444,55 +444,55 @@ app.post('/addParticipant', async (req, res) => {
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
       
-      let currentDate = new Date();
-      let dueDate = new Date(currentDate)
+      // let currentDate = new Date();
+      // let dueDate = new Date(currentDate)
 
-      if (dueDate.getDate() <= 8) {
-        dueDate.setDate(10);
-      }
-      else {
-        dueDate.setDate(currentDate.getDate() + 2);
-      }
+      // if (dueDate.getDate() <= 8) {
+      //   dueDate.setDate(10);
+      // }
+      // else {
+      //   dueDate.setDate(currentDate.getDate() + 2);
+      // }
 
-      let formattedDueDate = dueDate.toISOString().slice(0, 10).replace(/-/g, '');
+      // let formattedDueDate = dueDate.toISOString().slice(0, 10).replace(/-/g, '');
 
 
-      let billAmount = bill < 999 ? "00000000" + bill + "00" : "0000000" + bill + "00";
+      // let billAmount = bill < 999 ? "00000000" + bill + "00" : "0000000" + bill + "00";
 
-      let billAfterDueDate = (bill * 1.2) < 999 ? "00000000" + (bill * 1.2) + "00" : "0000000" + (bill * 1.2) + "00";	
+      // let billAfterDueDate = (bill * 1.2) < 999 ? "00000000" + (bill * 1.2) + "00" : "0000000" + (bill * 1.2) + "00";	
 
-      const payment = new Payment({
-        consumer_number: consumerNumber,
-        consumer_detail: participantData.Leader_name,
-        bill_status: 'U',
-        due_date: formattedDueDate,
-        amount_within_dueDate: billAmount,
-        amount_after_dueDate: billAfterDueDate,
-        billing_month: '2404',
-        date_paid: "        ", // 8 whitespaces
-        tran_auth_id: "      ", // 6 whitespaces
-        amount_paid: "            ", // 12 whitespaces
-        reserved: "",
-        identification_parameter: "",
-        transaction_amount: "",
-        tran_date: "",
-        tran_time: "",
-        bank_mnemonic: ""
-      })
+      // const payment = new Payment({
+      //   consumer_number: consumerNumber,
+      //   consumer_detail: participantData.Leader_name,
+      //   bill_status: 'U',
+      //   due_date: formattedDueDate,
+      //   amount_within_dueDate: billAmount,
+      //   amount_after_dueDate: billAfterDueDate,
+      //   billing_month: '2404',
+      //   date_paid: "        ", // 8 whitespaces
+      //   tran_auth_id: "      ", // 6 whitespaces
+      //   amount_paid: "            ", // 12 whitespaces
+      //   reserved: "",
+      //   identification_parameter: "",
+      //   transaction_amount: "",
+      //   tran_date: "",
+      //   tran_time: "",
+      //   bank_mnemonic: ""
+      // })
 
-      await payment.save();
+      // await payment.save();
 
-      let data = {
-        name: participantData.Leader_name,	
-        consumerNumber: consumerNumber,
-        email: participantData.Leader_email,
-        dueDate: formattedDueDate,
-        bill: bill,
-        billAfterDueDate: bill*1.2,
-        competition: participantData.Competition,
-      }
+      // let data = {
+      //   name: participantData.Leader_name,	
+      //   consumerNumber: consumerNumber,
+      //   email: participantData.Leader_email,
+      //   dueDate: formattedDueDate,
+      //   bill: bill,
+      //   billAfterDueDate: bill*1.2,
+      //   competition: participantData.Competition,
+      // }
 
-      await sendEmail_ConsumerNumber(data);
+      // await sendEmail_ConsumerNumber(data);
       
       res.send({
         success: true,
