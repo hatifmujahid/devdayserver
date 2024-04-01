@@ -4,7 +4,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');;
 const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
-const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp, getBill , getCompetitionID} = require('./competition');
+const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp, getCompetitionID, getBill } = require('./competition');
+const { sendEmail_ConsumerNumber, sendEmail_PaymentReceived  } = require('./Email');
 
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
@@ -13,7 +14,10 @@ const { stringify } = require('querystring');
 const app = express();
 const port = 5000;
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173' // Allow requests from this origin
+}));
+
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 app.use(bodyParser.json());
@@ -56,27 +60,14 @@ const participantSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-
   mem1_name: String,
   mem1_email: String,
   mem1_whatsapp_number: String,
   mem1_cnic: String,
-
   mem2_name: String,
   mem2_email: String,
   mem2_whatsapp_number: String,
   mem2_cnic: String,
-
-  mem3_name: String,
-  mem3_email: String,
-  mem3_whatsapp_number: String,
-  mem3_cnic: String,
-
-  mem4_name: String,
-  mem4_email: String,
-  mem4_whatsapp_number: String,
-  mem4_cnic: String,
-
   fees_amount: {
     type: Number,
     required: true
@@ -280,7 +271,10 @@ async function uploadImage(base64Image, imageName, folderName) {
   }
 }
 
-async function verifyReferenceCode(referenceCode) {
+function verifyReferenceCode(referenceCode) {
+
+  const referenceCodes = ["FAANA20"]
+
   if (!referenceCode || referenceCode === '') {
     return false;
   }
@@ -288,24 +282,24 @@ async function verifyReferenceCode(referenceCode) {
     return false;
   }
 
-  if (referenceCode === "FAANA20") {
-    return true;
+  for (let i = 0; i < referenceCodes.length; i++) {
+    if (referenceCode === referenceCodes[i]) {
+      return true;
+    }
   }
 
   return false;
 }
 
 function generateConsumerNumber(cnic, competitionID) {
-  const prefix = '12305';
+  const prefix = '00008';
   const middle = cnic.slice(2);
-  competitionID = competitionID.slice(1);
+  competitionID = competitionID.slice(2);
   if (competitionID.length === 1) {
     competitionID = '0' + competitionID;
   }
   const suffix = competitionID;
   const consumerNumber = prefix + middle + suffix;
-  console.log(consumerNumber)
-  console.log(prefix + "+" + middle + "+" + suffix)
   return consumerNumber;
 }
 
@@ -421,55 +415,84 @@ app.post('/addParticipant', async (req, res) => {
     const competitionID = getCompetitionID(participantData.Competition);
 
     if (await checkCompetitionID(competitionID, participantData.Leader_cnic)) {
-        res.status(400).send({
-          alreadyRegistered: true,
-          success: false,
-          message: 'Participant already registered for this competition'
-        });
+        res.status(400).send('Participant already registered for this competition');
         return
     }
     else {
+      let bill = 0;
 
-      let bill = getBill(participantData.Competition)
+      bill = getBill(participantData.Competition);
 
       if (verifyReferenceCode(participantData.reference_code)) {
-        //20% discount 
-        bill = bill - (bill * 0.2);
+         bill = bill - (bill * 0.2);
       }
   
       participantData.fees_amount = bill;
+
       participantData.paid = false;
 
       participantData.Leader_cnic = participantData.Leader_cnic.replace(/-/g, "");
-      participantData.Leader_whatsapp_number = participantData.Leader_whatsapp_number.replace(/-/g, "");
-      participantData.mem1_cnic = participantData.mem1_cnic.replace(/-/g, "");
-      participantData.mem1_whatsapp_number = participantData.mem1_whatsapp_number.replace(/-/g, "");
-      participantData.mem2_cnic = participantData.mem2_cnic.replace(/-/g, "");
-      participantData.mem2_whatsapp_number = participantData.mem2_whatsapp_number.replace(/-/g, "");
-      participantData.mem3_cnic = participantData.mem3_cnic.replace(/-/g, "");
-      participantData.mem3_whatsapp_number = participantData.mem3_whatsapp_number.replace(/-/g, "");
-      participantData.mem4_cnic = participantData.mem4_cnic.replace(/-/g, "");
-      participantData.mem4_whatsapp_number = participantData.mem4_whatsapp_number.replace(/-/g, "");
+
+      
       
       const competitionId = getCompetitionID(participantData.Competition);
       participantData.Competition_id = competitionId;
       const consumerNumber = generateConsumerNumber(participantData.Leader_cnic, competitionId);
   
       participantData.consumerNumber = consumerNumber;
-      
-      //console.log(participantData.Competition_id);
-      //console.log(participantData.image);
-      const file = participantData.image;
-      //console.log(file) 
-
-      await uploadImage(file, `${participantData.Leader_cnic}_${participantData.Leader_name}_${participantData.Competition}_${participantData.Leader_whatsapp_number}`, "PaymentReceipts");
 
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
-      //const payment = new Payment({
-        //consumer_number: consumerNumber,
-        //})
-      //await payment.save();
+      
+      let currentDate = new Date();
+      let dueDate = new Date(currentDate)
+
+      if (dueDate.getDate() <= 8) {
+        dueDate.setDate(10);
+      }
+      else {
+        dueDate.setDate(currentDate.getDate() + 2);
+      }
+
+      let formattedDueDate = dueDate.toISOString().slice(0, 10).replace(/-/g, '');
+
+
+      let billAmount = bill < 999 ? "00000000" + bill + "00" : "0000000" + bill + "00";
+
+      let billAfterDueDate = (bill * 1.2) < 999 ? "00000000" + (bill * 1.2) + "00" : "0000000" + (bill * 1.2) + "00";	
+
+      const payment = new Payment({
+        consumer_number: consumerNumber,
+        consumer_detail: participantData.Leader_name,
+        bill_status: 'U',
+        due_date: formattedDueDate,
+        amount_within_dueDate: billAmount,
+        amount_after_dueDate: billAfterDueDate,
+        billing_month: '2404',
+        date_paid: "        ", // 8 whitespaces
+        tran_auth_id: "      ", // 6 whitespaces
+        amount_paid: "            ", // 12 whitespaces
+        reserved: "",
+        identification_parameter: "",
+        transaction_amount: "",
+        tran_date: "",
+        tran_time: "",
+        bank_mnemonic: ""
+      })
+
+      await payment.save();
+
+      let data = {
+        name: participantData.Leader_name,	
+        consumerNumber: consumerNumber,
+        email: participantData.Leader_email,
+        dueDate: formattedDueDate,
+        bill: bill,
+        billAfterDueDate: bill*1.2,
+        competition: participantData.Competition,
+      }
+
+      await sendEmail_ConsumerNumber(data);
       
       res.send({
         success: true,
@@ -548,6 +571,7 @@ app.post('/addAmbassador', async (req, res) => {
       res.status(500).send('Error saving ambassador');
   }
 });
+
 app.post('/addPayment', async (req, res) => {
   try {
     const payment = new Payment(req.body);
@@ -558,6 +582,7 @@ app.post('/addPayment', async (req, res) => {
     res.status(500).send('Error saving payment');
   }
 });
+
 app.post('/api/v1/BillInquiry', async (req, res) => {
   try {
     const username = req.get('username');
@@ -604,6 +629,7 @@ app.post('/api/v1/BillInquiry', async (req, res) => {
   }
 
 });
+
 app.post('/api/v1/BillPayment', async (req, res) => {
   try {
     const username = req.get('username');

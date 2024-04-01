@@ -39,34 +39,18 @@ const getEsportsComp = () => {
     return esports
 }
 
-const getBill = (competition) => {
+const getBill = (competitionName) => {
     let bill = 0;
-    for (let i = 0; i < csCompetitions.length; i++) {
-        if (csCompetitions[i].id === competition) {
-            bill = csCompetitions[i].price;
+    const allCompetitions = [...csCompetitions, ...generalCompetitions, ...roboticsCompetitions, ...esports];
+    for (let i = 0; i < allCompetitions.length; i++) {
+        if (allCompetitions[i].name === competitionName) {
+            bill = allCompetitions[i].price;
+            break; // Once the competition is found, no need to continue looping
         }
     }
-
-    for (let i = 0; i < generalCompetitions.length; i++) {
-        if (generalCompetitions[i].id === competition) {
-            bill = generalCompetitions[i].price;
-        }
-    }
-
-    for (let i = 0; i < roboticsCompetitions.length; i++) {
-        if (roboticsCompetitions[i].id === competition) {
-            bill = roboticsCompetitions[i].price;
-        }
-    }
-
-    for (let i = 0; i < esports.length; i++) {
-        if (esports[i].id === competition) {
-            bill = esports[i].price;
-        }
-    }
-
     return bill;
 }
+
 
 const csCompetitions = [
     {
@@ -177,21 +161,21 @@ const csCompetitions = [
 
 const generalCompetitions = [{
     name: 'Photography',
-    id: 'G01',
+    id: 'G20',
     maxEntry: 50,
     minMembers: 1,
     maxMembers: 1,
     price: 1000
 }, {
     name: 'Reels competition',
-    id: 'G02',
+    id: 'G21',
     maxEntry: 50,
     minMembers: 1,
     maxMembers: 2,
     price: 1000
 }, {
     name: 'Board games',
-    id: 'G03',
+    id: 'G22',
     maxEntry: 35,
     minMembers: 1,
     maxMembers: 1,
@@ -199,7 +183,7 @@ const generalCompetitions = [{
 },
 {
     name: 'Scavenger hunt',
-    id: 'G04',
+    id: 'G23',
     maxEntry: 30,
     minMembers: 2,
     maxMembers: 4,
@@ -207,7 +191,7 @@ const generalCompetitions = [{
 },
 {
     name: 'Sketching Competition',
-    id: 'G05',
+    id: 'G24',
     maxEntry: 50,
     minMembers: 1,
     maxMembers: 1,
@@ -215,7 +199,7 @@ const generalCompetitions = [{
 },
 {
     name: 'Podium game',
-    id: 'G06',
+    id: 'G25',
     maxEntry: 40,
     minMembers: 1,
     maxMembers: 2,
@@ -223,7 +207,7 @@ const generalCompetitions = [{
 },
 {
     name: 'Fast Stock Exchange',
-    id: 'G07',
+    id: 'G26',
     maxEntry: 20,
     minMembers: 1,
     maxMembers: 2,
@@ -234,14 +218,14 @@ const generalCompetitions = [{
 
 const roboticsCompetitions = [{
     name: 'Line Following Robot (LFR) Competition',
-    id: 'R01',
+    id: 'R30',
     maxEntry: 15,
     minMembers: 1,
     maxMembers: 4,
     price: 1500
 }, {
     name: 'Robo Soccer Competition',
-    id: 'R02',
+    id: 'R31',
     maxEntry: 20,
     minMembers: 1,
     maxMembers: 4,
@@ -252,7 +236,7 @@ const roboticsCompetitions = [{
 
 const esports = [
     {
-        name: 'CS2',
+        name: 'C40',
         id: 'ES01',
         maxEntry: 8,
         minMembers: 1,
