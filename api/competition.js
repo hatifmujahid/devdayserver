@@ -239,7 +239,7 @@ const esports = [
         name: 'Counter-Strike 2 (CS2)',
         id: 'ES01',
         maxEntry: 8,
-        minMembers: 5,
+        minMembers: 1,
         maxMembers: 5,
         price: 2500
     }
