@@ -236,7 +236,7 @@ const roboticsCompetitions = [{
 
 const esports = [
     {
-        name: 'CS2',
+        name: 'Counter-Strike 2 (CS2)',
         id: 'ES01',
         maxEntry: 8,
         minMembers: 5,
