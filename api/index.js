@@ -86,6 +86,10 @@ const participantSchema = new mongoose.Schema({
   Competition_type: {
     type: String,
     required: true
+  },
+  Payment_Mode: {
+    type: String,
+    required: true
   }
 });
 
@@ -229,10 +233,22 @@ const fypRegistrationSchema = new mongoose.Schema({
   }
 });
 
+const cashUserSchema = new mongoose.Schema({
+  referenceCode: String,
+  email: String,
+  name: String,
+  id: String,
+  password: String,
+  // arrayy of participants that have registered consumer Number
+  participants: [String]
+})
+
 const Participant = mongoose.model('Participant', participantSchema);
 const FYP_Registration = mongoose.model('FYP_Registration', fypRegistrationSchema);
 const Ambassador = mongoose.model('Ambassador', ambassadorSchema);
 const Payment = mongoose.model('Payment', PaymentSchema);
+const CashUser = mongoose.model('CashUser', cashUserSchema);
+
 
 async function uploadImage(base64Image, imageName, folderName) {
   const client = new ftp.Client();
@@ -438,6 +454,7 @@ app.post('/addParticipant', async (req, res) => {
       const consumerNumber = generateConsumerNumber(participantData.Leader_cnic, competitionId);
   
       participantData.consumerNumber = consumerNumber;
+      participantData.Payment_Mode = 'Online';
 
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
@@ -503,6 +520,106 @@ app.post('/addParticipant', async (req, res) => {
     res.status(500).send('Error saving participant');
   }
 });
+
+app.post('/cashLogin', async (req, res) => {
+  try {
+    const data = req.body;
+    const user = await CashUser.findOne({id: data.id, password: data.password});
+    if (user) {
+      const token = jwt.sign({ id: user.id }, 'ACM_bohat_kaam_karati_hai', { expiresIn: '2h' });
+      res.send({
+        token: token,
+        success: true,
+      });
+    }
+    else {
+      res.send({
+        success: false,
+        message: 'Invalid credentials',
+      });
+    }
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).send({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+})
+
+const verifySession = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send('Unauthorized');
+  }
+  const token = authHeader.split(' ')[1];
+  jwt.verify(token, 'ACM_bohat_kaam_karati_hai', (err, decoded) => {
+    if (err) {
+      return res.status(401).send('Unauthorized');
+    }
+    req.user = decoded;
+    next();
+  });
+} 
+
+app.post('/cashRegister',verifySession , async (req, res) => {
+
+  try {
+    let participantData = req.body;
+
+    participantData.Leader_cnic = participantData.Leader_cnic.replace(/-/g, "");
+
+    if (participantData.Leader_name === '' || participantData.Leader_email === '' || participantData.Leader_whatsapp_number === '' || participantData.Leader_cnic === '') {
+      res.status(400).send('Incomeplete data');
+      return
+    }
+
+    const competitionID = getCompetitionID(participantData.Competition);
+
+    if (await checkCompetitionID(competitionID, participantData.Leader_cnic)) {
+        res.status(400).send('Participant already registered for this competition');
+        return
+    }
+    else {
+      let bill = 0;
+
+      bill = getBill(participantData.Competition);
+
+      if (verifyReferenceCode(participantData.reference_code)) {
+         bill = bill - (bill * 0.2);
+      }
+  
+      participantData.fees_amount = bill;
+
+      participantData.paid = false;
+
+      participantData.Leader_cnic = participantData.Leader_cnic.replace(/-/g, "");
+
+      
+      
+      const competitionId = getCompetitionID(participantData.Competition);
+      participantData.Competition_id = competitionId;
+      const consumerNumber = generateConsumerNumber(participantData.Leader_cnic, competitionId);
+  
+      participantData.consumerNumber = consumerNumber;
+      participantData.Payment_Mode = 'Cash';
+
+      const participant = new Participant(participantData);
+      const savedParticipant = await participant.save();
+      
+      res.send({
+        success: true,
+        message: 'Participant added successfully',
+      });
+    }
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).send('Error saving participant');
+  }
+})
+
 
 app.post('/addFYPRegistration', async (req, res) => {
   try {
