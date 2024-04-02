@@ -456,6 +456,11 @@ app.post('/addParticipant', async (req, res) => {
       participantData.consumerNumber = consumerNumber;
       participantData.Payment_Mode = 'Online';
 
+      const file = participantData.image;
+      //console.log(file) 
+
+      await uploadImage(file, `${participantData.Leader_cnic}_${participantData.Leader_name}_${participantData.Competition}_${participantData.Leader_whatsapp_number}`, "PaymentReceipts");
+
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
       
