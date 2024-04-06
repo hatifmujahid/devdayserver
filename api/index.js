@@ -4,6 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');;
 const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
+const jwt = require("jsonwebtoken");
 const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp, getCompetitionID, getBill } = require('./competition');
 const { sendEmail_ConsumerNumber, sendEmail_PaymentReceived  } = require('./Email');
 
