@@ -165,21 +165,21 @@ const generalCompetitions = [{
     maxEntry: 50,
     minMembers: 1,
     maxMembers: 1,
-    price: 1000
+    price: 500
 }, {
     name: 'Reels competition',
     id: 'G21',
     maxEntry: 50,
     minMembers: 1,
     maxMembers: 2,
-    price: 1000
+    price: 500
 }, {
     name: 'Board games',
     id: 'G22',
     maxEntry: 35,
     minMembers: 1,
     maxMembers: 1,
-    price: 1000
+    price: 500
 },
 {
     name: 'Scavenger hunt',
@@ -195,15 +195,15 @@ const generalCompetitions = [{
     maxEntry: 50,
     minMembers: 1,
     maxMembers: 1,
-    price: 1000
+    price: 500
 },
 {
-    name: 'Podium game',
+    name: 'Quiz competition',
     id: 'G25',
     maxEntry: 40,
     minMembers: 1,
     maxMembers: 2,
-    price: 1000
+    price: 500
 },
 {
     name: 'Fast Stock Exchange',
