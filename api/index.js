@@ -15,11 +15,6 @@ const { stringify } = require('querystring');
 const app = express();
 const port = 5000;
 
-const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:5174', "https://acmdevday.com"],	
-}
-
-app.use(cors(corsOptions));
 
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
