@@ -238,7 +238,8 @@ const fypRegistrationSchema = new mongoose.Schema({
   },
   reference_code: {
     type: String
-  }
+  },
+  university_name: String
 });
 
 const cashUserSchema = new mongoose.Schema({
