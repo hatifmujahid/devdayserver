@@ -90,6 +90,11 @@ const participantSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  Filled_by: String,
+  timestamp: {
+    type: Date,
+    default: Date.now
+  },
   Payment_Mode: {
     type: String,
     required: true
@@ -619,13 +624,15 @@ app.post('/cashRegister',verifySession , async (req, res) => {
   
       participantData.consumerNumber = consumerNumber;
       participantData.Payment_Mode = 'Cash';
-      participantData.paid = false;
+      participantData.paid = true;
 
-      const user = CashUser.findOne({referenceCode: participantData.reference_code, id: req.user.id});
-      if (user) {
-        user.participants.push(consumerNumber);
-        await user.save();
-      }
+      participantData.Filled_by = req.user.id;
+
+      // const user = CashUser.findOne({referenceCode: participantData.reference_code, id: req.user.id});
+      // if (user) {
+      //   user.participants.push(consumerNumber);
+      //   await user.save();
+      // }
 
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
