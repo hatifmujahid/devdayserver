@@ -569,6 +569,13 @@ const verifySession = (req, res, next) => {
   });
 } 
 
+app.get("/verifyCashSession", verifySession, (req, res) => {
+  res.send({
+    success: true,
+    message: 'Verified'
+  });
+})
+
 app.post('/cashRegister',verifySession , async (req, res) => {
 
   try {
