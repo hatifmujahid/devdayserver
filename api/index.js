@@ -619,6 +619,13 @@ app.post('/cashRegister',verifySession , async (req, res) => {
   
       participantData.consumerNumber = consumerNumber;
       participantData.Payment_Mode = 'Cash';
+      participantData.paid = false;
+
+      const user = CashUser.findOne({id: participantData.reference_code});
+      if (user) {
+        user.participants.push(consumerNumber);
+        await user.save();
+      }
 
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
