@@ -19,6 +19,11 @@ const getCompetitionDetails = (competition) => {
             return roboticsCompetitions[i][competition];
         }
     }
+    for (let i = 0; i < esports.length; i++) {
+        if (esports[i].hasOwnProperty(competition)) {
+            return esports[i][competition];
+        }
+    }
 
     return null;
 }
@@ -262,6 +267,12 @@ const getCompetitionID = (competition) => {
     for (let i = 0; i < roboticsCompetitions.length; i++) {
         if (roboticsCompetitions[i].name === competition) {
             id = roboticsCompetitions[i].id;
+        }
+    }
+
+    for (let i = 0; i < esports.length; i++) {
+        if (esports[i].name === competition) {
+            id = esports[i].id;
         }
     }
 
