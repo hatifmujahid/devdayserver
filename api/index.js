@@ -10,6 +10,7 @@ const { sendEmail_ConsumerNumber, sendEmail_PaymentReceived  } = require('./Emai
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
 const { stringify } = require('querystring');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = 5000;
@@ -92,6 +93,37 @@ const participantSchema = new mongoose.Schema({
     required: true
   }
 });
+
+const SocialEventSchema = new mongoose.Schema({
+  cnic: {
+    type: String,
+    required: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    required: true
+  },
+  whatsapp_number: {
+    type: String,
+    required: true
+  },
+  college: {
+    type: String,
+    required: true
+  },
+  isParticipant: {
+    type: Boolean,
+    required: true
+  },
+  fees_amount: {
+    type: Number,
+    required: true
+  }
+})
 
 const PaymentSchema = new mongoose.Schema({
   consumer_number: {
@@ -248,7 +280,7 @@ const FYP_Registration = mongoose.model('FYP_Registration', fypRegistrationSchem
 const Ambassador = mongoose.model('Ambassador', ambassadorSchema);
 const Payment = mongoose.model('Payment', PaymentSchema);
 const CashUser = mongoose.model('CashUser', cashUserSchema);
-
+const SocialEvent = mongoose.model('SocialEvent', SocialEventSchema);
 
 async function uploadImage(base64Image, imageName, folderName) {
   const client = new ftp.Client();
@@ -620,12 +652,102 @@ app.post('/cashRegister',verifySession , async (req, res) => {
   }
 })
 
+app.post("/verifyParticipant",verifySession, async (req, res) => {
+
+  try {
+    const cnic = req.body.cnic;
+    const participant = await Participant.findOne({Leader_cnic: cnic});
+    if (participant) {
+
+      const data = {
+        name: participant.Leader_name,
+        email: participant.Leader_email,
+        whatsapp_number: participant.Leader_whatsapp_number,
+        cnic: participant.Leader_cnic,
+        consumerNumber: participant.consumerNumber,
+        competition: participant.Competition,
+        Team_Name: participant.Team_Name
+      }
+      res.send({
+        success: true,
+        data: data,
+      });
+    }
+    else {
+      res.status(400).send('Participant not found');
+    }
+  }
+  catch {
+    res.status(500).send('Internal Server Error');
+  }
+
+})
+
+app.post('/addSocialEventParticipant', async (req, res) => {
+  try {
+    let participantData = req.body;
+    console.log("End point hit")
+    console.log(participantData);
+    if (participantData.name === '' || participantData.email === '' || participantData.whatsapp_number === '' || participantData.cnic === '' || participantData.college === '') {
+      res.status(400).send('Incomeplete data');
+      return
+    }
+
+    let bill = 1000;
+    let isParticipant = false;
+
+    const participant = await Participant.findOne({Leader_cnic: participantData.cnic});
+    if (participant) {
+      bill  = bill * 0.8;
+      isParticipant = true;
+    }
+
+    participantData.fees_amount = bill;
+    participantData.isParticipant = isParticipant;
+
+    const social = await SocialEvent.findOne({cnic: participantData.cnic});
+
+    if (social) {
+      res.send({
+        success: false,
+        message: 'Participant already registered for social event',
+      });	
+      return;
+    }
+
+    const socialEvent = new SocialEvent(participantData);
+    const savedParticipant = await socialEvent.save();
+    
+    if (participant) {
+      res.send({
+        success: true,
+        message: 'Participant added successfully, and discount applied successfully',
+      })
+    }
+    else {
+      res.send({
+        success: true,
+        message: 'Participant added successfully',
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error saving participant');
+  }
+});
 
 app.post('/addFYPRegistration', async (req, res) => {
   try {
     const registration = new FYP_Registration(req.body);
+    const img = req.body.payment_receipt;
+    
+    await uploadImage(img, `${req.body.Leader_name}_${req.body.Leader_whatsapp_number}_${req.body.Team_Name}`, "FYP_Receipts");
+    
     const savedRegistration = await registration.save();
+
+    // Upload the image to the FTP server
     res.send(savedRegistration);
+
   } catch (error) {
     console.error(error);
     res.status(500).send('Error saving FYP registration');
