@@ -11,7 +11,6 @@ const { sendEmail_ConsumerNumber, sendEmail_PaymentReceived  } = require('./Emai
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
 const { stringify } = require('querystring');
-const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = 5000;
