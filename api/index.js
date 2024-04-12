@@ -486,7 +486,6 @@ app.post('/addParticipant', async (req, res) => {
       participantData.paid = false;
 
       participantData.Leader_cnic = participantData.Leader_cnic.replace(/-/g, "");
-
       
       
       const competitionId = getCompetitionID(participantData.Competition);
@@ -495,6 +494,20 @@ app.post('/addParticipant', async (req, res) => {
   
       participantData.consumerNumber = consumerNumber;
       participantData.Payment_Mode = 'Online';
+
+      for (let i = 1; i <= 4; i++) {
+        const fieldName = `mem${i}_cnic`;
+        if (participantData[fieldName]) {
+          participantData[fieldName] = participantData[fieldName].replace(/-/g, "");
+        }
+      }
+
+      for (let i = 1; i <= 4; i++) {
+        const fieldName = `mem${i}_whatsapp_number`;
+        if (participantData[fieldName]) {
+          participantData[fieldName] = participantData[fieldName].replace(/-/g, "");
+        }
+      }
 
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
@@ -561,6 +574,9 @@ app.post('/addParticipant', async (req, res) => {
   }
 });
 
+// a route to get the details of all the socials
+
+
 app.post('/cashLogin', async (req, res) => {
   try {
     const data = req.body;
@@ -607,44 +623,44 @@ app.post('/cashRegister',verifySession , async (req, res) => {
 
   try {
     let participantData = req.body;
-
+    
     participantData.Leader_cnic = participantData.Leader_cnic.replace(/-/g, "");
-
+    
     if (participantData.Leader_name === '' || participantData.Leader_email === '' || participantData.Leader_whatsapp_number === '' || participantData.Leader_cnic === '') {
       res.status(400).send('Incomeplete data');
       return
     }
-
+    
     const competitionID = getCompetitionID(participantData.Competition);
-
+    
     if (await checkCompetitionID(competitionID, participantData.Leader_cnic)) {
-        res.status(400).send('Participant already registered for this competition');
+      res.status(400).send('Participant already registered for this competition');
         return
-    }
-    else {
-      let bill = 0;
+      }
+      else {
+        let bill = 0;
 
       bill = getBill(participantData.Competition);
 
       if (verifyReferenceCode(participantData.reference_code)) {
          bill = bill - (bill * 0.2);
       }
-  
+      
       participantData.fees_amount = bill;
-
+      
       participantData.paid = false;
-
+      
       participantData.Leader_cnic = participantData.Leader_cnic.replace(/-/g, "");
-
+      
       
       
       const competitionId = getCompetitionID(participantData.Competition);
       participantData.Competition_id = competitionId;
       const consumerNumber = generateConsumerNumber(participantData.Leader_cnic, competitionId);
-  
+      
       participantData.consumerNumber = consumerNumber;
       participantData.Payment_Mode = 'Cash';
-
+      
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
       
@@ -660,89 +676,70 @@ app.post('/cashRegister',verifySession , async (req, res) => {
   }
 })
 
+app.get('/getSocials', verifySession ,async (req, res) => {
+  try {
+    const socials = await SocialEvent.find({});
+    res.send(socials);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error fetching socials');
+  }
+})
+
 async function isParticipant(cnic) {
-  const participant = await Participant.findOne({Leader_cnic: cnic});
-  let data = {}
-  if (participant) {
+  // Remove dashes from the input CNIC
+  const formattedInputCnic = cnic.replace(/-/g, '');
+  
+  // Define a regex pattern to match the formatted input CNIC with any number of dashes in the database CNICs
+  const regexPattern = formattedInputCnic.split('').join('-?');
+
+  // Search for the participant by matching the formatted input CNIC with any number of dashes removed in the database
+  const participant = await Participant.findOne({
+    $or: [
+      { Leader_cnic: { $regex: regexPattern } },
+      { mem1_cnic: { $regex: regexPattern } },
+      { mem2_cnic: { $regex: regexPattern } },
+      { mem3_cnic: { $regex: regexPattern } },
+      { mem4_cnic: { $regex: regexPattern } }
+    ]
+  });
+
+  // If participant not found, return null
+  if (!participant) {
+    return null;
+  }
+
+  // Determine the CNIC field that matches the input CNIC
+  let matchingCNICField;
+  if (participant.Leader_cnic && participant.Leader_cnic.replace(/-/g, '') === formattedInputCnic) {
+    matchingCNICField = 'Leader';
+  } else {
+    for (let i = 1; i <= 4; i++) {
+      const memCNIC = participant[`mem${i}_cnic`];
+      if (memCNIC && memCNIC.replace(/-/g, '') === formattedInputCnic) {
+        matchingCNICField = `mem${i}`;
+        break;
+      }
+    }
+  }
+
+  // Prepare the data to return based on the matching CNIC field
+  let data = null;
+  if (matchingCNICField) {
     data = {
-      name: participant.Leader_name,
-      email: participant.Leader_email,
-      whatsapp_number: participant.Leader_whatsapp_number,
-      cnic: participant.Leader_cnic,
+      name: participant[`${matchingCNICField}_name`],
+      email: participant[`${matchingCNICField}_email`],
+      whatsapp_number: participant[`${matchingCNICField}_whatsapp_number`],
+      cnic: participant[`${matchingCNICField}_cnic`],
       consumerNumber: participant.consumerNumber,
       competition: participant.Competition,
       Team_Name: participant.Team_Name
-    }
-    return data;
+    };
   }
-  else {
-    const formatedCnic = cnic.slice(0, 5) + '-' + cnic.slice(5, 12) + '-' + cnic.slice(12);
-    console.log(formatedCnic);
-    console.log("not found")
-    let p = await Participant.findOne({mem1_cnic: formatedCnic});
-    if (p) {
-      data = {
-          name: p.mem1_name,
-          email: p.mem1_email,
-          whatsapp_number: p.mem1_whatsapp_number,
-          cnic: p.mem1_cnic,
-          consumerNumber: p.consumerNumber,
-          competition: p.Competition,
-          Team_Name: p.Team_Name
-        }
-      return data;
-    }
-    else {
-      console.log(formatedCnic);
-      p = await Participant.findOne({mem2_cnic: formatedCnic});
-      if (p) {
-        data = {
-          name: p.mem2_name,
-          email: p.mem2_email,
-          whatsapp_number: p.mem2_whatsapp_number,
-          cnic: p.mem2_cnic,
-          consumerNumber: p.consumerNumber,
-          competition: p.Competition,
-          Team_Name: p.Team_Name
-        }
-        return data;
-      }
-      else {
-        p = await Participant.findOne({mem3_cnic: formatedCnic});
-        if (p) {
-          data = {
-            name: p.mem3_name,
-            email: p.mem3_email,
-            whatsapp_number: p.mem3_whatsapp_number,
-            cnic: p.mem3_cnic,
-            consumerNumber: p.consumerNumber,
-            competition: p.Competition,
-            Team_Name: p.Team_Name
-          }
-          return data;
-        }
-        else {
-          p = await Participant.findOne({mem4_cnic: formatedCnic});
-          if (p) {
-            data = {
-              name: p.mem4_name,
-              email: p.mem4_email,
-              whatsapp_number: p.mem4_whatsapp_number,
-              cnic: p.mem4_cnic,
-              consumerNumber: p.consumerNumber,
-              competition: p.Competition,
-              Team_Name: p.Team_Name
-            }
-            return data;
-          }
-          else {
-            return null;
-          }
-        }
-      }
-    }
-  }
+
+  return data;
 }
+
 
 app.post("/verifyParticipant",verifySession, async (req, res) => {
 
