@@ -685,7 +685,15 @@ app.post("/verifyParticipant",verifySession, async (req, res) => {
 
   try {
     const cnic = req.body.cnic;
+    if (cnic === '') {
+      res.status(400).send('Incomeplete data');
+      return
+    }
+
+    console.log(cnic);
     const participant = await Participant.findOne({Leader_cnic: cnic});
+    console.log(participant);
+
     if (participant) {
 
       const data = {
@@ -703,11 +711,17 @@ app.post("/verifyParticipant",verifySession, async (req, res) => {
       });
     }
     else {
-      res.status(400).send('Participant not found');
+      res.status(404).send({
+        success: false,
+        message: 'Participant not found',
+      });
     }
   }
   catch {
-    res.status(500).send('Internal Server Error');
+    res.status(500).send({
+      success: false,
+      message: 'Internal server error',
+    });
   }
 
 })
