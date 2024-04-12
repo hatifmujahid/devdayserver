@@ -69,6 +69,14 @@ const participantSchema = new mongoose.Schema({
   mem2_email: String,
   mem2_whatsapp_number: String,
   mem2_cnic: String,
+  mem3_name: String,
+  mem3_email: String,
+  mem3_whatsapp_number: String,
+  mem3_cnic: String,
+  mem4_name: String,
+  mem4_email: String,
+  mem4_whatsapp_number: String,
+  mem4_cnic: String,
   fees_amount: {
     type: Number,
     required: true
@@ -681,6 +689,90 @@ app.post('/cashRegister',verifySession , async (req, res) => {
   }
 })
 
+async function isParticipant(cnic) {
+  const participant = await Participant.findOne({Leader_cnic: cnic});
+  let data = {}
+  if (participant) {
+    data = {
+      name: participant.Leader_name,
+      email: participant.Leader_email,
+      whatsapp_number: participant.Leader_whatsapp_number,
+      cnic: participant.Leader_cnic,
+      consumerNumber: participant.consumerNumber,
+      competition: participant.Competition,
+      Team_Name: participant.Team_Name
+    }
+    return data;
+  }
+  else {
+    const formatedCnic = cnic.slice(0, 5) + '-' + cnic.slice(5, 12) + '-' + cnic.slice(12);
+    console.log(formatedCnic);
+    console.log("not found")
+    let p = await Participant.findOne({mem1_cnic: formatedCnic});
+    if (p) {
+      data = {
+          name: p.mem1_name,
+          email: p.mem1_email,
+          whatsapp_number: p.mem1_whatsapp_number,
+          cnic: p.mem1_cnic,
+          consumerNumber: p.consumerNumber,
+          competition: p.Competition,
+          Team_Name: p.Team_Name
+        }
+      return data;
+    }
+    else {
+      console.log(formatedCnic);
+      p = await Participant.findOne({mem2_cnic: formatedCnic});
+      if (p) {
+        data = {
+          name: p.mem2_name,
+          email: p.mem2_email,
+          whatsapp_number: p.mem2_whatsapp_number,
+          cnic: p.mem2_cnic,
+          consumerNumber: p.consumerNumber,
+          competition: p.Competition,
+          Team_Name: p.Team_Name
+        }
+        return data;
+      }
+      else {
+        p = await Participant.findOne({mem3_cnic: formatedCnic});
+        if (p) {
+          data = {
+            name: p.mem3_name,
+            email: p.mem3_email,
+            whatsapp_number: p.mem3_whatsapp_number,
+            cnic: p.mem3_cnic,
+            consumerNumber: p.consumerNumber,
+            competition: p.Competition,
+            Team_Name: p.Team_Name
+          }
+          return data;
+        }
+        else {
+          p = await Participant.findOne({mem4_cnic: formatedCnic});
+          if (p) {
+            data = {
+              name: p.mem4_name,
+              email: p.mem4_email,
+              whatsapp_number: p.mem4_whatsapp_number,
+              cnic: p.mem4_cnic,
+              consumerNumber: p.consumerNumber,
+              competition: p.Competition,
+              Team_Name: p.Team_Name
+            }
+            return data;
+          }
+          else {
+            return null;
+          }
+        }
+      }
+    }
+  }
+}
+
 app.post("/verifyParticipant",verifySession, async (req, res) => {
 
   try {
@@ -691,26 +783,17 @@ app.post("/verifyParticipant",verifySession, async (req, res) => {
     }
 
     console.log(cnic);
-    const participant = await Participant.findOne({Leader_cnic: cnic});
-    console.log(participant);
+    const participant = await isParticipant(cnic);
 
-    if (participant) {
+    if (participant !== null) {
 
-      const data = {
-        name: participant.Leader_name,
-        email: participant.Leader_email,
-        whatsapp_number: participant.Leader_whatsapp_number,
-        cnic: participant.Leader_cnic,
-        consumerNumber: participant.consumerNumber,
-        competition: participant.Competition,
-        Team_Name: participant.Team_Name
-      }
       res.send({
         success: true,
-        data: data,
+        data: participant,
       });
     }
     else {
+
       res.status(404).send({
         success: false,
         message: 'Participant not found',
@@ -729,24 +812,21 @@ app.post("/verifyParticipant",verifySession, async (req, res) => {
 app.post('/addSocialEventParticipant', async (req, res) => {
   try {
     let participantData = req.body;
-    console.log("End point hit")
-    console.log(participantData);
     if (participantData.name === '' || participantData.email === '' || participantData.whatsapp_number === '' || participantData.cnic === '' || participantData.college === '') {
       res.status(400).send('Incomeplete data');
       return
     }
 
     let bill = 1000;
-    let isParticipant = false;
+    let isPart = false;
 
-    const participant = await Participant.findOne({Leader_cnic: participantData.cnic});
-    if (participant) {
-      bill  = bill * 0.8;
-      isParticipant = true;
+    const participant = await isParticipant(participantData.cnic);
+    if (participant !== null) {
+      isPart = true;
     }
 
     participantData.fees_amount = bill;
-    participantData.isParticipant = isParticipant;
+    participantData.isParticipant = isPart;
 
     const social = await SocialEvent.findOne({cnic: participantData.cnic});
 
@@ -758,19 +838,27 @@ app.post('/addSocialEventParticipant', async (req, res) => {
       return;
     }
 
+    if (participantData.isParticipant === false) {
+      res.send({
+        success: false,
+        message: 'Participant not registered for any competition',
+      });
+      return;
+    }
+
     const socialEvent = new SocialEvent(participantData);
     const savedParticipant = await socialEvent.save();
     
-    if (participant) {
-      res.send({
-        success: true,
-        message: 'Participant added successfully, and discount applied successfully',
-      })
-    }
-    else {
+    if (savedParticipant) {
       res.send({
         success: true,
         message: 'Participant added successfully',
+      });
+    }
+    else {
+      res.send({
+        success: false,
+        message: 'Error saving participant',
       });
     }
   } catch (error) {
