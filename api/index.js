@@ -4,18 +4,20 @@ const cors = require('cors');
 const bodyParser = require('body-parser');;
 const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
+const jwt = require("jsonwebtoken");
 const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp, getCompetitionID, getBill } = require('./competition');
 const { sendEmail_ConsumerNumber, sendEmail_PaymentReceived  } = require('./Email');
 
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
 const { stringify } = require('querystring');
-const jwt = require('jsonwebtoken');
 
 const app = express();
 const port = 5000;
 
-app.use(cors());
+app.use(cors({
+  origin: '*'
+}));
 
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
@@ -95,6 +97,11 @@ const participantSchema = new mongoose.Schema({
   Competition_type: {
     type: String,
     required: true
+  },
+  Filled_by: String,
+  timestamp: {
+    type: Date,
+    default: Date.now
   },
   Payment_Mode: {
     type: String,
@@ -270,7 +277,8 @@ const fypRegistrationSchema = new mongoose.Schema({
   },
   reference_code: {
     type: String
-  }
+  },
+  university_name: String
 });
 
 const cashUserSchema = new mongoose.Schema({
@@ -495,6 +503,7 @@ app.post('/addParticipant', async (req, res) => {
       participantData.consumerNumber = consumerNumber;
       participantData.Payment_Mode = 'Online';
 
+
       for (let i = 1; i <= 4; i++) {
         const fieldName = `mem${i}_cnic`;
         if (participantData[fieldName]) {
@@ -509,6 +518,14 @@ app.post('/addParticipant', async (req, res) => {
         }
       }
 
+      const file = participantData.image;
+      //console.log(file) 
+
+      await uploadImage(file, `${participantData.Leader_cnic}_${participantData.Leader_name}_${participantData.Competition}_${participantData.Leader_whatsapp_number}`, "PaymentReceipts");
+
+
+      participantData.referenceCode = participantData.reference_code.toUpperCase();
+      
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
       
@@ -619,6 +636,13 @@ const verifySession = (req, res, next) => {
   });
 } 
 
+app.get("/verifyCashSession", verifySession, (req, res) => {
+  res.send({
+    success: true,
+    message: 'Verified'
+  });
+})
+
 app.post('/cashRegister',verifySession , async (req, res) => {
 
   try {
@@ -660,7 +684,17 @@ app.post('/cashRegister',verifySession , async (req, res) => {
       
       participantData.consumerNumber = consumerNumber;
       participantData.Payment_Mode = 'Cash';
-      
+
+      participantData.paid = true;
+
+      participantData.Filled_by = req.user.id;
+
+      // const user = CashUser.findOne({referenceCode: participantData.reference_code, id: req.user.id});
+      // if (user) {
+      //   user.participants.push(consumerNumber);
+      //   await user.save();
+      // }
+        
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
       
