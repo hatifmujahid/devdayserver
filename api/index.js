@@ -6,11 +6,12 @@ const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
 const jwt = require("jsonwebtoken");
 const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp, getCompetitionID, getBill } = require('./competition');
-const { sendEmail_ConsumerNumber, sendEmail_PaymentReceived  } = require('./Email');
+const { sendEmail_Cash, sendEmail_Social  } = require('./Email');
 
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
 const { stringify } = require('querystring');
+const { send } = require('process');
 
 const app = express();
 const port = 5000;
@@ -701,6 +702,14 @@ app.post('/cashRegister',verifySession , async (req, res) => {
         
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
+
+      await sendEmail_Cash({
+        name: participantData.Leader_name,
+        email: participantData.Leader_email,
+        competition: participantData.Competition,
+        bill: bill,
+        team: participantData.Team_Name,
+      });
       
       res.send({
         success: true,
@@ -854,8 +863,17 @@ app.post('/addSocialEventParticipant', async (req, res) => {
 
     const socialEvent = new SocialEvent(participantData);
     const savedParticipant = await socialEvent.save();
+   
+
     
     if (savedParticipant) {
+
+      await sendEmail_Social({
+        name: participantData.name,
+        email: participantData.email,
+        ticket: participantData.ticketID,
+      });
+
       res.send({
         success: true,
         message: 'Participant added successfully',
