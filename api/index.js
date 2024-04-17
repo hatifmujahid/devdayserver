@@ -142,6 +142,10 @@ const SocialEventSchema = new mongoose.Schema({
   ticketID: {
     type: String,
     required: true
+  },
+  filled_by: {
+    type: String,
+    required: true
   }
 })
 
@@ -827,7 +831,7 @@ app.post("/verifyParticipant",verifySession, async (req, res) => {
 app.post('/addSocialEventParticipant', async (req, res) => {
   try {
     let participantData = req.body;
-    if (participantData.name === '' || participantData.email === '' || participantData.whatsapp_number === '' || participantData.cnic === '' || participantData.college === '' || participantData.ticketID==='') {
+    if (participantData.name === '' || participantData.email === '' || participantData.whatsapp_number === '' || participantData.cnic === '' || participantData.college === '' || participantData.ticketID==='' || participantData.filled_by === '') {
       res.status(400).send('Incomeplete data');
       return
     }
