@@ -47,7 +47,6 @@ const sendEmail_Cash = async (data) => {
         console.log(error);
         reject(error);
       } else {
-        console.log("Server is ready to take our messages");
         resolve(success);
       }
     });
@@ -56,6 +55,7 @@ const sendEmail_Cash = async (data) => {
   const mailOptions = {
     from: 'devday@nuceskhi.acm.org',
     to: data.email,
+    cc: 'k200218@nu.edu.pk',
     subject: "Registration Confirmation for Dev Day 2024",
     html: compiledTemplate,
   };
@@ -67,7 +67,6 @@ const sendEmail_Cash = async (data) => {
         console.error(err);
         reject(err);
       } else {
-        console.log(info);
         resolve(info);
       }
     });
@@ -102,7 +101,6 @@ const sendEmail_Social = async (data) => {
         console.log(error);
         reject(error);
       } else {
-        console.log("Server is ready to take our messages");
         resolve(success);
       }
     });
@@ -111,6 +109,7 @@ const sendEmail_Social = async (data) => {
   const mailOptions = {
     from: 'devday@nuceskhi.acm.org',
     to: data.email,
+    cc: 'k200218@nu.edu.pk',
     subject: "Registration Confirmation for Dev Day 2024",
     html: compiledTemplate,
   };
@@ -122,7 +121,6 @@ const sendEmail_Social = async (data) => {
         console.error(err);
         reject(err);
       } else {
-        console.log(info);
         resolve(info);
       }
     });
@@ -156,7 +154,6 @@ const sendEmail_PaymentReceived = async (receiver, emailSubject, data) => {
         console.log(error);
         reject(error);
       } else {
-        console.log("Server is ready to take our messages");
         resolve(success);
       }
     });
@@ -176,7 +173,6 @@ const sendEmail_PaymentReceived = async (receiver, emailSubject, data) => {
         console.error(err);
         reject(err);
       } else {
-        console.log(info);
         resolve(info);
       }
     });
