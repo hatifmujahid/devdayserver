@@ -784,7 +784,8 @@ async function isParticipant(cnic) {
       cnic: participant[`${matchingCNICField}_cnic`],
       consumerNumber: participant.consumerNumber,
       competition: participant.Competition,
-      Team_Name: participant.Team_Name
+      Team_Name: participant.Team_Name,
+      Paid: participant.paid
     };
   }
 
