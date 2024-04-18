@@ -644,7 +644,7 @@ const verifySession = (req, res, next) => {
     if (err) {
       return res.status(401).send('Unauthorized');
     }
-    req.user = decoded;
+    req.user = decoded.id;
     next();
   });
 } 
@@ -700,7 +700,7 @@ app.post('/cashRegister',verifySession , async (req, res) => {
 
       participantData.paid = true;
 
-      participantData.Filled_by = req.user.id;
+      participantData.Filled_by = req.user;
 
       // const user = CashUser.findOne({referenceCode: participantData.reference_code, id: req.user.id});
       // if (user) {
@@ -833,7 +833,7 @@ app.post("/verifyParticipant",verifySession, async (req, res) => {
 
 })
 
-app.post('/addSocialEventParticipant', async (req, res) => {
+app.post('/addSocialEventParticipant', verifySession, async (req, res) => {
   try {
     let participantData = req.body;
     if (participantData.name === '' || participantData.email === '' || participantData.whatsapp_number === '' || participantData.cnic === '' || participantData.college === '' || participantData.ticketID==='' || participantData.filled_by === '') {
@@ -851,7 +851,7 @@ app.post('/addSocialEventParticipant', async (req, res) => {
 
     participantData.fees_amount = bill;
     participantData.isParticipant = isPart;
-    participantData.filled_by = req.user.id;
+    participantData.filled_by = req.user ;
 
     const social = await SocialEvent.findOne({cnic: participantData.cnic});
 
@@ -867,7 +867,7 @@ app.post('/addSocialEventParticipant', async (req, res) => {
       if (req.user.id) {
         const user = await CashUser.findOne({id: req.user.id});
         if (user.isSuperUser) {
-          participantData.filled_by = req.user.id;
+          participantData.filled_by = req.user;
           const socialEventSuper = new SocialEvent(participantData);
           const savedParticipantSuper = await socialEvent.save();
       
