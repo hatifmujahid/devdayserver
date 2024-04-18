@@ -61,7 +61,7 @@ const csCompetitions = [
     {
         name: 'Competitive Programming',
         id: 'CS01',
-        maxEntry: 40,
+        maxEntry: 50,
         minMembers: 1,
         maxMembers: 3,
         price: 1000
