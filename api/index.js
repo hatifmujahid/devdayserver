@@ -296,6 +296,10 @@ const cashUserSchema = new mongoose.Schema({
   name: String,
   id: String,
   password: String,
+  isSuperUser: {
+    type: Boolean,
+    default: false
+  },
   // arrayy of participants that have registered consumer Number
   participants: [String]
 })
@@ -796,17 +800,17 @@ async function isParticipant(cnic) {
 app.post("/verifyParticipant",verifySession, async (req, res) => {
 
   try {
+
+    
     const cnic = req.body.cnic;
     if (cnic === '') {
       res.status(400).send('Incomeplete data');
       return
     }
 
-    console.log(cnic);
     const participant = await isParticipant(cnic);
 
     if (participant !== null) {
-
       res.send({
         success: true,
         data: participant,
@@ -847,6 +851,7 @@ app.post('/addSocialEventParticipant', async (req, res) => {
 
     participantData.fees_amount = bill;
     participantData.isParticipant = isPart;
+    participantData.filled_by = req.user.id;
 
     const social = await SocialEvent.findOne({cnic: participantData.cnic});
 
@@ -859,10 +864,42 @@ app.post('/addSocialEventParticipant', async (req, res) => {
     }
 
     if (participantData.isParticipant === false) {
+      if (req.user.id) {
+        const user = await CashUser.findOne({id: req.user.id});
+        if (user.isSuperUser) {
+          participantData.filled_by = req.user.id;
+          const socialEventSuper = new SocialEvent(participantData);
+          const savedParticipantSuper = await socialEvent.save();
+      
+          if (socialEventSuper) {
+
+            await sendEmail_Social({
+              name: participantData.name,
+              email: participantData.email,
+              ticket: participantData.ticketID,
+            });
+
+            res.send({
+              success: true,
+              message: 'Participant added successfully',
+            });
+          }
+          else {
+            res.send({
+              success: false,
+              message: 'Error saving participant',
+            });
+          }
+          return;
+
+        }
+      }
+
       res.send({
         success: false,
         message: 'Participant not registered for any competition',
       });
+
       return;
     }
 
