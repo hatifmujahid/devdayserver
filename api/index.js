@@ -702,7 +702,7 @@ app.post('/cashRegister',verifySession , async (req, res) => {
 
       participantData.Filled_by = req.user;
 
-      // const user = CashUser.findOne({referenceCode: participantData.reference_code, id: req.user.id});
+      // const user = CashUser.findOne({referenceCode: participantData.reference_code, id: req.user});
       // if (user) {
       //   user.participants.push(consumerNumber);
       //   await user.save();
@@ -864,8 +864,8 @@ app.post('/addSocialEventParticipant', verifySession, async (req, res) => {
     }
 
     if (participantData.isParticipant === false) {
-      if (req.user.id) {
-        const user = await CashUser.findOne({id: req.user.id});
+      if (req.user) {
+        const user = await CashUser.findOne({id: req.user});
         if (user.isSuperUser) {
           participantData.filled_by = req.user;
           const socialEventSuper = new SocialEvent(participantData);
