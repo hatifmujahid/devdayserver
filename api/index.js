@@ -869,7 +869,7 @@ app.post('/addSocialEventParticipant', verifySession, async (req, res) => {
         if (user.isSuperUser) {
           participantData.filled_by = req.user;
           const socialEventSuper = new SocialEvent(participantData);
-          const savedParticipantSuper = await socialEvent.save();
+          const savedParticipantSuper = await socialEventSuper.save();
       
           if (socialEventSuper) {
 
