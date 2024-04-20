@@ -226,7 +226,7 @@ const generalCompetitions = [{
     maxEntry: 35,
     minMembers: 1,
     maxMembers: 2,
-    price: 500
+    price: '1k for 2, 500 for 1'
 },
 {
     name: 'Scrabble',
