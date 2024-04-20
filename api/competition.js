@@ -183,7 +183,7 @@ const generalCompetitions = [{
 {
     name: 'Scavenger hunt',
     id: 'G23',
-    maxEntry: 8,
+    maxEntry: 9,
     minMembers: 2,
     maxMembers: 4,
     price: 1200
