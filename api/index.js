@@ -108,6 +108,7 @@ const participantSchema = new mongoose.Schema({
     type: String,
     required: true
   }
+  
 });
 
 const SocialEventSchema = new mongoose.Schema({
