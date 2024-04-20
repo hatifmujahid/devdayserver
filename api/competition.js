@@ -221,12 +221,12 @@ const generalCompetitions = [{
     price: 500
 },
 {
-    name: 'Ludo',
+    name: 'Ludo (1000 for 2, 500 for 1)',
     id: 'G28',
     maxEntry: 35,
     minMembers: 1,
     maxMembers: 2,
-    price: '1k for 2, 500 for 1'
+    price: 1000
 },
 {
     name: 'Scrabble',
