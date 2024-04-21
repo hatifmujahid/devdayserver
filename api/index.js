@@ -631,6 +631,7 @@ app.post('/cashLogin', async (req, res) => {
     res.status(500).send({
       success: false,
       message: 'Internal server error',
+      
     });
   }
 })
