@@ -215,15 +215,15 @@ const generalCompetitions = [{
 {
     name: 'Chess',
     id: 'G27',
-    maxEntry: 35,
+    maxEntry: 16,
     minMembers: 1,
     maxMembers: 1,
     price: 500
 },
 {
-    name: 'Ludo (1000 for 2, 500 for 1)',
+    name: 'Ludo',
     id: 'G28',
-    maxEntry: 35,
+    maxEntry: 20,
     minMembers: 1,
     maxMembers: 2,
     price: 1000
@@ -231,7 +231,7 @@ const generalCompetitions = [{
 {
     name: 'Scrabble',
     id: 'G29',
-    maxEntry: 35,
+    maxEntry: 10,
     minMembers: 1,
     maxMembers: 1,
     price: 500
