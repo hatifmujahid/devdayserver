@@ -61,7 +61,7 @@ const csCompetitions = [
     {
         name: 'Competitive Programming',
         id: 'CS01',
-        maxEntry: 50,
+        maxEntry: 65,
         minMembers: 1,
         maxMembers: 3,
         price: 1000
@@ -101,7 +101,7 @@ const csCompetitions = [
     {
         name: 'Code in Dark',
         id: 'CS06',
-        maxEntry: 30,
+        maxEntry: 18,
         minMembers: 1,
         maxMembers: 3,
         price: 1000
