@@ -141,7 +141,7 @@ const csCompetitions = [
     {
         name: 'Capture The Flag',
         id: 'CS11',
-        maxEntry: 50,
+        maxEntry: 45,
         minMembers: 1,
         maxMembers: 3,
         price: 1000
