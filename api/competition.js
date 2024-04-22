@@ -69,7 +69,7 @@ const csCompetitions = [
     {
         name: 'Code Sprint',
         id: 'CS02',
-        maxEntry: 80,
+        maxEntry: 102,
         minMembers: 1,
         maxMembers: 3,
         price: 1000
