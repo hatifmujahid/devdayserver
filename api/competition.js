@@ -125,7 +125,7 @@ const csCompetitions = [
     {
         name: 'Web Dev',
         id: 'CS09',
-        maxEntry: 30,
+        maxEntry: 20,
         minMembers: 1,
         maxMembers: 3,
         price: 1000
