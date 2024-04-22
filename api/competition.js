@@ -93,7 +93,7 @@ const csCompetitions = [
     {
         name: 'Query Quest',
         id: 'CS05',
-        maxEntry: 45,
+        maxEntry: 22,
         minMembers: 1,
         maxMembers: 3,
         price: 1000
