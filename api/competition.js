@@ -1,4 +1,4 @@
-const getCompetitionDetails = (competition) => {
+/* const getCompetitionDetails = (competition) => {
     // Check CS Competitions
     for (let i = 0; i < csCompetitions.length; i++) {
         if (csCompetitions[i].hasOwnProperty(competition)) {
@@ -300,3 +300,4 @@ const getCompetitionID = (competition) => {
 }
 
 module.exports = { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp, getBill, getCompetitionID};
+*/
