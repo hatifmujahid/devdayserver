@@ -101,7 +101,7 @@ const csCompetitions = [
     {
         name: 'Code in Dark',
         id: 'CS06',
-        maxEntry: 17,
+        maxEntry: 18,
         minMembers: 1,
         maxMembers: 3,
         price: 1000
