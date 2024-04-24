@@ -6,6 +6,7 @@ const getCompetitionDetails = (competition) => {
         }
     }
 
+    
     // Check General Competitions
     for (let i = 0; i < generalCompetitions.length; i++) {
         if (generalCompetitions[i].hasOwnProperty(competition)) {
