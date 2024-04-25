@@ -347,6 +347,38 @@ async function uploadImage(base64Image, imageName, folderName) {
   }
 }
 
+async function uploadPDF(base64PDF, pdfName, folderName) {
+  const client = new ftp.Client();
+
+  try {
+    await client.access({
+      host: 'ftp.nuceskhi.hosting.acm.org',
+      user: 'areeb@nuceskhi.hosting.acm.org',
+      password: 'e@u4YR]J44TH',
+      secure: false // Change to true if you're using FTPS
+    });
+
+    // Decode the Base64 PDF
+    const base64Data = base64PDF.replace(/^data:application\/pdf;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Create a readable stream from the buffer
+    const stream = new Readable();
+    stream.push(buffer);
+    stream.push(null); // Indicate the end of the stream
+
+    // Upload the PDF stream to the FTP server
+    const fileName = `${folderName}/${pdfName}.pdf`.replace(/\s/g, '_');
+    await client.uploadFrom(stream, fileName);
+
+    console.log("PDF uploaded successfully");
+  } catch (err) {
+    console.error('Error:', err);
+  } finally {
+    client.close();
+  }
+}
+
 function verifyReferenceCode(referenceCode) {
 
   const referenceCodes = ["FAANA20"]
@@ -1123,6 +1155,49 @@ app.post('/api/v1/BillPayment', async (req, res) => {
     res.send(response);
   }
 });
+
+const getPosition = (id) => {
+  const jobs = [
+    {
+      id: "something",
+      name: "something",
+      company: "something",
+    }
+  ]
+
+  const positions = jobs.map(job => {
+    if (job.id === id) {
+      return job.name;
+    }
+  }
+    
+    return ""
+}
+
+app.post('/apply', async (res, res) => {
+  const {
+    firstName,
+    lastName,
+    email,
+    github,
+    linkedin,
+    position,
+    company,
+    file
+  } = req.body;
+  
+  const posi = getPosition(position);
+  
+  const Name = `${firstName}_${lastName}_${posi}`;	
+
+  // Upload the image to the FTP server
+  await uploadImage(file, `${firstName}_${lastName}_${batch}_${position}`, company);
+
+  res.send({
+    success: true,
+    "message": "upload Successfully"
+  })
+})
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
