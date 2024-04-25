@@ -1,6 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
+// const cors = require('cors');
+const cors=require("cors");
+const corsOptions ={
+   origin:'*', 
+   credentials:true,            //access-control-allow-credentials:true
+   optionSuccessStatus:200,
+}
+app.use(cors(corsOptions)) // Use this after the variable declaration
 const bodyParser = require('body-parser');;
 const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
@@ -1350,7 +1357,7 @@ app.post('/apply', async (req, res) => {
     file
   } = req.body;
   
-  const fileName = getCompany(getCompany)
+  const fileName = getCompany(company)
   // Upload the image to the FTP server
   await uploadPDF(file, `${firstName}_${lastName}_${batch}_${position}`, fileName );
 
