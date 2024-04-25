@@ -359,7 +359,9 @@ async function uploadPDF(base64PDF, pdfName, folderName) {
     });
 
     // Decode the Base64 PDF
+    console.log(base64PDF)
     const base64Data = base64PDF.replace(/^data:application\/pdf;base64,/, '');
+    console.log(base64Data)
     const buffer = Buffer.from(base64Data, 'base64');
 
     // Create a readable stream from the buffer
@@ -1156,29 +1158,184 @@ app.post('/api/v1/BillPayment', async (req, res) => {
   }
 });
 
-const getPosition = (id) => {
-  const jobs = [
+
+const Jobs = [
     {
-      id: "something",
-      name: "something",
-      company: "something",
+        "id": 1,
+        "company": "Eocean",
+        "file": "eocean",
+        "jobs": [
+            "Devops engineer (2 openings)",
+            "Information security officer (2 openings)",
+            "Full stack Software engineer (3 openings)",
+            "Frontend (2 openings)",
+            "GTO (4 openings)",
+            "Interns (8-10 openings)",
+            "Java developer (2 openings)",
+            "Software support engineer (2 openings)"
+        ]
     },
     {
-      id: "something",
-      name: "something",
-      company: "something",
+        "id": 2,
+      "company": "Systems Limited",
+        "file": "systems",
+        "jobs": [
+            "MEAN/MERN",
+            "React/Angular Dev",
+            "Node JS Dev",
+            ".Net",
+            "Java",
+            "IBM Integration stack",
+            "D365 ERP and CRM both technical and functional",
+            "Automation and manual Testing",
+            "Infosec",
+            "Cloud Dev Azure/AWS",
+            "AI/ML",
+            "Data Engineering",
+            "BI Dev",
+            "Android/iOS",
+            "Business Analysis",
+            "UI/UX design",
+            "Scrum Master/ Project Management",
+            "Php"
+        ]
+    },
+    {
+        "id": 3,
+      "company": "Jumppace",
+        "file": "jumppace",
+        "jobs": [
+            "PHP Intern (laravel + Codeignitor) - 1 opening",
+            "iOS Native Intern (Swift) - 1 opening",
+            "Android Native Intern (Kotlin) - 1 opening",
+            "React JS Intern - 1 opening",
+            "Node JS Intern - 4 openings",
+            "SQA Intern - 2 openings"
+        ]
+    },
+    {
+        "id": 4,
+      "company": "Paysys",
+        "file": "paysys",
+        "jobs": [
+            "Software Engineer-Java",
+            "Associate Project Manager",
+            "Project Manager",
+            "System Security Engineer",
+            "Senior Network Engineer",
+            "Business Analyst",
+            "Senior Business Analyst"
+        ]
+    },
+    {
+        "id": 5,
+      "company": "CEE solutions/Snappretail",
+        "file": "cee",
+        "jobs": [
+            "Java Intern",
+            "Web Intern",
+            "Java Developer",
+            "Android Developer",
+            "Ui/Ux designer",
+            "Product Manager",
+            "Angular Developer",
+            "SQA Interns",
+            "SQA Engineer (permanent)"
+        ]
+    },
+    {
+        "id": 6,
+      "company": "Bleed AI",
+        "file": "bleed",
+        "jobs": [
+            "ML Engineer",
+            "UPWORK Specialist",
+            "Lead Generation",
+            "SQA",
+            "HR Generalist"
+        ]
+    },
+    {
+        "id": 7,
+      "company": "Sofy.ai",
+        "file": "sofi",
+        "jobs": [
+            "Backend (2-3 openings)",
+            "Frontend (2-3 openings)",
+            "Others (2-3 openings)"
+        ]
+    },
+    {
+        "id": 8,
+      "company": "asani.io",
+        "file": "asani",
+        "jobs": [
+            "Business Development Executives",
+            "Application Engineers",
+            "Embedded/ R&D Engineers",
+            "MERN Stack Developers",
+            "Business Intelligence Officers",
+            "Jr. Solution Architects"
+        ]
+    },
+    {
+        "id": 9,
+      "company": "Kistpay",
+        "file": "kistpay",
+        "jobs": [
+            "React JS (1 opening)",
+            "Java (1 opening)",
+            "Credit Risk Analyst (1 opening)"
+        ]
+    },
+    {
+        "id": 10,
+      "company": "UHF solutions",
+        "file": "uhf",
+        "jobs": [
+            "Project Management Officer (1 opening)",
+            "Business Analyst (1 opening)",
+            "PHP developer (2 openings)"
+        ]
+    },
+    {
+        "id": 11,
+      "company": "Martin Dow",
+        "file": "martindow",
+        "jobs": [
+            "Assistant Manager Software Development (.NET Developers)",
+            "Summer Internship Program & Management Trainee Program (require IT candidates)"
+        ]
+    },
+    {
+        "id": 12,
+      "company": "QBS",
+        "file": "qbs",
+        "jobs": [
+            ".NET Positions: Associate (2), Senior (1), Fresh Or Intern (2)",
+            "MERN Positions: Senior (1), MERN Backend Intern (1)",
+            "SQA Positions: Associate (1), Intern (2)"
+        ]
+    },
+    {
+        "id": 13,
+      "company": "Coxta Solutions",
+        "file": "coxta",
+        "jobs": [
+            "UI/UX designer (1)",
+            "Graphics designer (2)",
+            "Sales manager (1)",
+            "Project Coordinator (1)",
+            "Web developer (2)"
+        ]
     }
-  ]
+]
 
-  const positions = jobs.map(job => {
-    if (job.id === id) {
-      return job.name;
-    }
-    
-    return ""
-  })
-  
+const getCompany = (id) => {
+  const cmp = Jobs.find(job => job.id === id);
+  return cmp.file;
 }
+
 
 app.post('/apply', async (req, res) => {
   const {
@@ -1189,20 +1346,43 @@ app.post('/apply', async (req, res) => {
     linkedin,
     batch,
     position,
+    company,
     file
   } = req.body;
   
-  const posi = getPosition(position);
-  
-  const Name = `${firstName}_${lastName}_${posi}`;	
-
+  const fileName = getCompany(getCompany)
   // Upload the image to the FTP server
-  await uploadImage(file, `${firstName}_${lastName}_${batch}_${position}`, company);
+  await uploadPDF(file, `${firstName}_${lastName}_${batch}_${position}`, fileName );
 
   res.send({
     success: true,
     "message": "upload Successfully"
   })
+})
+
+app.post("/position", (req, res) => {
+  const id = parseInt(req.body.id); // Assuming id is parsed correctly and is of the same type (e.g., number) expected in company.id
+
+
+  // Use `find` instead of `map` to find the first matching company
+  const company = Jobs.find(company => company.id === id);
+
+
+  // Check if a company was found
+  if (company) {
+    res.send({
+      jobs: company.jobs
+    });
+  } else {
+    res.send({
+      jobs: []
+    });
+  }
+});
+
+
+app.get("/getCompany", (req, res) => {
+  res.send(Jobs);
 })
 
 app.listen(port, () => {
