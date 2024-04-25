@@ -4,6 +4,7 @@ const getCompetitionDetails = (competition) => {
         if (csCompetitions[i].hasOwnProperty(competition)) {
             return csCompetitions[i][competition];
         }
+        
     }
 
     
