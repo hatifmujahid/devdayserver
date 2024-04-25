@@ -1162,6 +1162,11 @@ const getPosition = (id) => {
       id: "something",
       name: "something",
       company: "something",
+    },
+    {
+      id: "something",
+      name: "something",
+      company: "something",
     }
   ]
 
@@ -1169,20 +1174,21 @@ const getPosition = (id) => {
     if (job.id === id) {
       return job.name;
     }
-  }
     
     return ""
+  })
+  
 }
 
-app.post('/apply', async (res, res) => {
+app.post('/apply', async (req, res) => {
   const {
     firstName,
     lastName,
     email,
     github,
     linkedin,
+    batch,
     position,
-    company,
     file
   } = req.body;
   
