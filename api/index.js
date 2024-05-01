@@ -6,11 +6,12 @@ const ftp = require('basic-ftp');
 const dotenv = require('dotenv');
 const jwt = require("jsonwebtoken");
 const { getCompetitionDetails, getCsComp, getGenComp, getRoboComp, getEsportsComp, getCompetitionID, getBill } = require('./competition');
-const { sendEmail_ConsumerNumber, sendEmail_PaymentReceived  } = require('./Email');
+const { sendEmail_Cash, sendEmail_Social  } = require('./Email');
 
 dotenv.config({ path: '../.env' });
 const { Readable } = require('stream');
 const { stringify } = require('querystring');
+const { send } = require('process');
 
 const app = express();
 const port = 5000;
@@ -107,6 +108,7 @@ const participantSchema = new mongoose.Schema({
     type: String,
     required: true
   }
+  
 });
 
 const SocialEventSchema = new mongoose.Schema({
@@ -139,6 +141,10 @@ const SocialEventSchema = new mongoose.Schema({
     required: true
   },
   ticketID: {
+    type: String,
+    required: true
+  },
+  filled_by: {
     type: String,
     required: true
   }
@@ -291,6 +297,10 @@ const cashUserSchema = new mongoose.Schema({
   name: String,
   id: String,
   password: String,
+  isSuperUser: {
+    type: Boolean,
+    default: false
+  },
   // arrayy of participants that have registered consumer Number
   participants: [String]
 })
@@ -334,6 +344,40 @@ async function uploadImage(base64Image, imageName, folderName) {
       console.error('Error:', err);
   } finally {
       client.close();
+  }
+}
+
+async function uploadPDF(base64PDF, pdfName, folderName) {
+  const client = new ftp.Client();
+
+  try {
+    await client.access({
+      host: 'ftp.nuceskhi.hosting.acm.org',
+      user: 'areeb@nuceskhi.hosting.acm.org',
+      password: 'e@u4YR]J44TH',
+      secure: false // Change to true if you're using FTPS
+    });
+
+    // Decode the Base64 PDF
+    console.log(base64PDF)
+    const base64Data = base64PDF.replace(/^data:application\/pdf;base64,/, '');
+    console.log(base64Data)
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Create a readable stream from the buffer
+    const stream = new Readable();
+    stream.push(buffer);
+    stream.push(null); // Indicate the end of the stream
+
+    // Upload the PDF stream to the FTP server
+    const fileName = `${folderName}/${pdfName}.pdf`.replace(/\s/g, '_');
+    await client.uploadFrom(stream, fileName);
+
+    console.log("PDF uploaded successfully");
+  } catch (err) {
+    console.error('Error:', err);
+  } finally {
+    client.close();
   }
 }
 
@@ -645,6 +689,7 @@ app.post('/cashLogin', async (req, res) => {
     res.status(500).send({
       success: false,
       message: 'Internal server error',
+      
     });
   }
 })
@@ -659,7 +704,7 @@ const verifySession = (req, res, next) => {
     if (err) {
       return res.status(401).send('Unauthorized');
     }
-    req.user = decoded;
+    req.user = decoded.id;
     next();
   });
 } 
@@ -715,9 +760,9 @@ app.post('/cashRegister',verifySession , async (req, res) => {
 
       participantData.paid = true;
 
-      participantData.Filled_by = req.user.id;
+      participantData.Filled_by = req.user;
 
-      // const user = CashUser.findOne({referenceCode: participantData.reference_code, id: req.user.id});
+      // const user = CashUser.findOne({referenceCode: participantData.reference_code, id: req.user});
       // if (user) {
       //   user.participants.push(consumerNumber);
       //   await user.save();
@@ -725,6 +770,14 @@ app.post('/cashRegister',verifySession , async (req, res) => {
         
       const participant = new Participant(participantData);
       const savedParticipant = await participant.save();
+
+      await sendEmail_Cash({
+        name: participantData.Leader_name,
+        email: participantData.Leader_email,
+        competition: participantData.Competition,
+        bill: bill,
+        team: participantData.Team_Name,
+      });
       
       res.send({
         success: true,
@@ -795,7 +848,8 @@ async function isParticipant(cnic) {
       cnic: participant[`${matchingCNICField}_cnic`],
       consumerNumber: participant.consumerNumber,
       competition: participant.Competition,
-      Team_Name: participant.Team_Name
+      Team_Name: participant.Team_Name,
+      Paid: participant.paid
     };
   }
 
@@ -806,17 +860,17 @@ async function isParticipant(cnic) {
 app.post("/verifyParticipant",verifySession, async (req, res) => {
 
   try {
+
+    
     const cnic = req.body.cnic;
     if (cnic === '') {
       res.status(400).send('Incomeplete data');
       return
     }
 
-    console.log(cnic);
     const participant = await isParticipant(cnic);
 
     if (participant !== null) {
-
       res.send({
         success: true,
         data: participant,
@@ -839,10 +893,10 @@ app.post("/verifyParticipant",verifySession, async (req, res) => {
 
 })
 
-app.post('/addSocialEventParticipant', async (req, res) => {
+app.post('/addSocialEventParticipant', verifySession, async (req, res) => {
   try {
     let participantData = req.body;
-    if (participantData.name === '' || participantData.email === '' || participantData.whatsapp_number === '' || participantData.cnic === '' || participantData.college === '' || participantData.ticketID==='') {
+    if (participantData.name === '' || participantData.email === '' || participantData.whatsapp_number === '' || participantData.cnic === '' || participantData.college === '' || participantData.ticketID==='' || participantData.filled_by === '') {
       res.status(400).send('Incomeplete data');
       return
     }
@@ -857,6 +911,7 @@ app.post('/addSocialEventParticipant', async (req, res) => {
 
     participantData.fees_amount = bill;
     participantData.isParticipant = isPart;
+    participantData.filled_by = req.user ;
 
     const social = await SocialEvent.findOne({cnic: participantData.cnic});
 
@@ -869,17 +924,58 @@ app.post('/addSocialEventParticipant', async (req, res) => {
     }
 
     if (participantData.isParticipant === false) {
+      if (req.user) {
+        const user = await CashUser.findOne({id: req.user});
+        if (user.isSuperUser) {
+          participantData.filled_by = req.user;
+          const socialEventSuper = new SocialEvent(participantData);
+          const savedParticipantSuper = await socialEventSuper.save();
+      
+          if (socialEventSuper) {
+
+            await sendEmail_Social({
+              name: participantData.name,
+              email: participantData.email,
+              ticket: participantData.ticketID,
+            });
+
+            res.send({
+              success: true,
+              message: 'Participant added successfully',
+            });
+          }
+          else {
+            res.send({
+              success: false,
+              message: 'Error saving participant',
+            });
+          }
+          return;
+
+        }
+      }
+
       res.send({
         success: false,
         message: 'Participant not registered for any competition',
       });
+
       return;
     }
 
     const socialEvent = new SocialEvent(participantData);
     const savedParticipant = await socialEvent.save();
+   
+
     
     if (savedParticipant) {
+
+      await sendEmail_Social({
+        name: participantData.name,
+        email: participantData.email,
+        ticket: participantData.ticketID,
+      });
+
       res.send({
         success: true,
         message: 'Participant added successfully',
@@ -1087,7 +1183,233 @@ app.post('/api/v1/BillPayment', async (req, res) => {
 });
 
 
+const Jobs = [
+    {
+        "id": 1,
+        "company": "Eocean",
+        "file": "eocean",
+        "jobs": [
+            "Devops engineer (2 openings)",
+            "Information security officer (2 openings)",
+            "Full stack Software engineer (3 openings)",
+            "Frontend (2 openings)",
+            "GTO (4 openings)",
+            "Interns (8-10 openings)",
+            "Java developer (2 openings)",
+            "Software support engineer (2 openings)"
+        ]
+    },
+    {
+        "id": 2,
+      "company": "Systems Limited",
+        "file": "systems",
+        "jobs": [
+            "MEAN/MERN",
+            "React/Angular Dev",
+            "Node JS Dev",
+            ".Net",
+            "Java",
+            "IBM Integration stack",
+            "D365 ERP and CRM both technical and functional",
+            "Automation and manual Testing",
+            "Infosec",
+            "Cloud Dev Azure/AWS",
+            "AI/ML",
+            "Data Engineering",
+            "BI Dev",
+            "Android/iOS",
+            "Business Analysis",
+            "UI/UX design",
+            "Scrum Master/ Project Management",
+            "Php"
+        ]
+    },
+    {
+        "id": 3,
+      "company": "Jumppace",
+        "file": "jumppace",
+        "jobs": [
+            "PHP Intern (laravel + Codeignitor) - 1 opening",
+            "iOS Native Intern (Swift) - 1 opening",
+            "Android Native Intern (Kotlin) - 1 opening",
+            "React JS Intern - 1 opening",
+            "Node JS Intern - 4 openings",
+            "SQA Intern - 2 openings"
+        ]
+    },
+    {
+        "id": 4,
+      "company": "Paysys",
+        "file": "paysys",
+        "jobs": [
+            "Software Engineer-Java",
+            "Associate Project Manager",
+            "Project Manager",
+            "System Security Engineer",
+            "Senior Network Engineer",
+            "Business Analyst",
+            "Senior Business Analyst"
+        ]
+    },
+    {
+        "id": 5,
+      "company": "CEE solutions/Snappretail",
+        "file": "cee",
+        "jobs": [
+            "Java Intern",
+            "Web Intern",
+            "Java Developer",
+            "Android Developer",
+            "Ui/Ux designer",
+            "Product Manager",
+            "Angular Developer",
+            "SQA Interns",
+            "SQA Engineer (permanent)"
+        ]
+    },
+    {
+        "id": 6,
+      "company": "Bleed AI",
+        "file": "bleed",
+        "jobs": [
+            "ML Engineer",
+            "UPWORK Specialist",
+            "Lead Generation",
+            "SQA",
+            "HR Generalist"
+        ]
+    },
+    {
+        "id": 7,
+      "company": "Sofy.ai",
+        "file": "sofi",
+        "jobs": [
+            "Backend (2-3 openings)",
+            "Frontend (2-3 openings)",
+            "Others (2-3 openings)"
+        ]
+    },
+    {
+        "id": 8,
+      "company": "asani.io",
+        "file": "asani",
+        "jobs": [
+            "Business Development Executives",
+            "Application Engineers",
+            "Embedded/ R&D Engineers",
+            "MERN Stack Developers",
+            "Business Intelligence Officers",
+            "Jr. Solution Architects"
+        ]
+    },
+    {
+        "id": 9,
+      "company": "Kistpay",
+        "file": "kistpay",
+        "jobs": [
+            "React JS (1 opening)",
+            "Java (1 opening)",
+            "Credit Risk Analyst (1 opening)"
+        ]
+    },
+    {
+        "id": 10,
+      "company": "UHF solutions",
+        "file": "uhf",
+        "jobs": [
+            "Project Management Officer (1 opening)",
+            "Business Analyst (1 opening)",
+            "PHP developer (2 openings)"
+        ]
+    },
+    {
+        "id": 11,
+      "company": "Martin Dow",
+        "file": "martindow",
+        "jobs": [
+            "Assistant Manager Software Development (.NET Developers)",
+            "Summer Internship Program & Management Trainee Program (require IT candidates)"
+        ]
+    },
+    {
+        "id": 12,
+      "company": "QBS",
+        "file": "qbs",
+        "jobs": [
+            ".NET Positions: Associate (2), Senior (1), Fresh Or Intern (2)",
+            "MERN Positions: Senior (1), MERN Backend Intern (1)",
+            "SQA Positions: Associate (1), Intern (2)"
+        ]
+    },
+    {
+        "id": 13,
+      "company": "Coxta Solutions",
+        "file": "coxta",
+        "jobs": [
+            "UI/UX designer (1)",
+            "Graphics designer (2)",
+            "Sales manager (1)",
+            "Project Coordinator (1)",
+            "Web developer (2)"
+        ]
+    }
+]
+
+const getCompany = (id) => {
+  const cmp = Jobs.find(job => job.id === id);
+  return cmp.file;
+}
+
+
+app.post('/apply', async (req, res) => {
+  const {
+    firstName,
+    lastName,
+    email,
+    github,
+    linkedin,
+    batch,
+    position,
+    company,
+    file
+  } = req.body;
+  
+  const fileName = getCompany(company)
+  // Upload the image to the FTP server
+  await uploadPDF(file, `${firstName}_${lastName}_${batch}_${position}`, fileName );
+
+  res.send({
+    success: true,
+    "message": "upload Successfully"
+  })
+})
+
+app.post("/position", (req, res) => {
+  const id = parseInt(req.body.id); // Assuming id is parsed correctly and is of the same type (e.g., number) expected in company.id
+
+
+  // Use `find` instead of `map` to find the first matching company
+  const company = Jobs.find(company => company.id === id);
+
+
+  // Check if a company was found
+  if (company) {
+    res.send({
+      jobs: company.jobs
+    });
+  } else {
+    res.send({
+      jobs: []
+    });
+  }
+});
+
+
+app.get("/getCompany", (req, res) => {
+  res.send(Jobs);
+})
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
 });
+
