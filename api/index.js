@@ -464,6 +464,30 @@ app.get('/getCompetitions', async (req, res) => {
   }
 });
 
+app.post('/updatePaymentStatus', async (req, res) => {
+  try {
+    for(let i=0;i<req.body.length;i++){
+      const { consumerNumber} = req.body[i];
+      const participant = await Participant.findOne({ consumerNumber: consumerNumber });
+      if (!participant) {
+        res.status(404).send('Participant not found');
+        return;
+      }
+      if (participant.paid) {
+        continue;
+      }
+      participant.paid = true;
+      await participant.save();
+      console.log('Payment status updated team number:', i,' for Name:', participant.Leader_name, 'Team:', participant.Team_Name);
+    }
+    res.send('Payment status updated successfully');
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error updating payment status');
+  }
+})
+
 
 // Routes
 app.post('/addParticipant', async (req, res) => {
